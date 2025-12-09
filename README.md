@@ -445,8 +445,9 @@ chmod 755 backend-web/uploads/training_photos/
 ### Mobile App
 - ✅ Android 6.0+ (API 23+)
 - ✅ iOS 11+
-- ✅ Tablet support
-- ✅ Both portrait & landscape
+- ✅ Tablet support with adaptive layout
+- ✅ Portrait & landscape orientation
+- ✅ Responsive design for all screen sizes
 
 ## 🎯 Roadmap & Future Features
 

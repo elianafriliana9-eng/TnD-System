@@ -45,21 +45,23 @@ async function checkAuthStatus() {
             return;
         }
         
-        // Verify with API
-        const response = await AuthAPI.me();
-        console.log('🔑 Auth response:', response);
-        
-        if (response.success) {
-            currentUser = response.data;
-            updateUserInfo();
-            updateLastActivity();
-            startSessionMonitoring();
-            console.log('✅ User authenticated, showing dashboard...');
-            showDashboard(); // Show default page
-        } else {
-            console.log('❌ User not authenticated, redirecting to login...');
+        // Parse user data from localStorage
+        try {
+            currentUser = JSON.parse(userData);
+            console.log('✅ User authenticated from localStorage:', currentUser.name);
+        } catch (e) {
+            console.error('❌ Invalid user data format:', e);
             redirectToLogin();
+            authCheckInProgress = false;
+            return;
         }
+        
+        // Update UI and start monitoring
+        updateUserInfo();
+        updateLastActivity();
+        startSessionMonitoring();
+        showDashboard(); // Show default page
+        
     } catch (error) {
         console.error('❌ Auth check failed:', error);
         redirectToLogin();

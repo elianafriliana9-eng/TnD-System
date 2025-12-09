@@ -10,7 +10,7 @@ require_once __DIR__ . '/../utils/Security.php';
 require_once __DIR__ . '/../classes/User.php';
 
 // Handle preflight and set headers
-Headers::setCORS('http://localhost');
+Headers::setAPIHeaders(); // Use dynamic origin handling
 Headers::setJSON();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -76,13 +76,23 @@ try {
             'ip' => $clientIP
         ]);
         
-        // Set a simple auth cookie as backup
+        // Set session cookie with proper settings for production
+        $isProduction = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on');
+        $cookieOptions = [
+            'expires' => time() + (24 * 60 * 60), // 24 hours
+            'path' => '/',
+            'domain' => '',
+            'secure' => $isProduction, // Secure only on HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax' // Allow cookies on same-site navigation
+        ];
+        
         setcookie('tnd_auth', base64_encode(json_encode([
             'user_id' => $user['id'],
             'email' => $user['email'],
             'role' => $user['role'],
             'time' => time()
-        ])), time() + (24 * 60 * 60), '/', '', false, true); // 24 hours, httponly
+        ])), $cookieOptions);
         
         Response::success($user, 'Login successful');
     } else {

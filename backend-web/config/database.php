@@ -48,10 +48,14 @@ if ($isDevelopment) {
 }
 
 // Session Configuration - Enhanced Security
+$isHTTPS = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
+           (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_secure', 0); // Set to 1 for HTTPS in production
-ini_set('session.cookie_samesite', 'Lax');
-ini_set('session.gc_maxlifetime', 3600); // 1 hour
-ini_set('session.cookie_lifetime', 0); // Session cookie
+ini_set('session.cookie_secure', $isHTTPS ? 1 : 0); // Auto-detect HTTPS
+ini_set('session.cookie_samesite', 'Lax'); // Allow same-site requests
+ini_set('session.gc_maxlifetime', 7200); // 2 hours
+ini_set('session.cookie_lifetime', 0); // Session cookie (expires on browser close)
+session_name('TND_SESSION'); // Custom session name
 session_start();

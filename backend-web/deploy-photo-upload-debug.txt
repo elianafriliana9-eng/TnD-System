@@ -1,0 +1,177 @@
+==========================================
+DEPLOYMENT: Photo Upload Debug Fix
+==========================================
+
+MASALAH:
+- Upload photo error 500
+- Response body kosong
+- Mobile mengirim data, tapi backend tidak menerima
+
+SOLUSI:
+- Tambahkan extensive logging untuk track:
+  1. Request method, headers, content-type, content-length
+  2. $_POST data (count dan content)
+  3. $_FILES data (count dan content)  
+  4. Raw php://input untuk debug multipart form data
+  5. Detailed validation errors dengan available keys
+
+FILES TO UPLOAD:
+1. api/visit-photo-upload.php
+   - Added detailed request logging (method, headers, content-type, content-length)
+   - Log $_POST count dan content
+   - Log $_FILES count dan content
+   - Log raw input untuk multipart debugging
+   - Detailed validation error messages dengan available keys
+
+LANGKAH DEPLOYMENT:
+
+1. BACKUP FILE LAMA
+   - api/visit-photo-upload.php → visit-photo-upload.php.backup-20251103
+
+2. UPLOAD FILE BARU
+   - Upload api/visit-photo-upload.php via cPanel File Manager
+   - Set permissions: 644
+
+3. TEST FROM MOBILE APP
+   a. Buka app, start visit
+   b. Pilih checklist item
+   c. Tap camera icon → Take photo atau Pick from gallery
+   d. Add description (optional)
+   e. Kirim photo
+
+4. CHECK BACKEND LOGS
+   Location: cPanel → Metrics → Errors atau error_log file
+   
+   Expected log output:
+   ```
+   === VISIT PHOTO UPLOAD REQUEST ===
+   Request Method: POST
+   Content-Type: multipart/form-data; boundary=----WebKitFormBoundary...
+   Content-Length: 123456
+   Headers: {"Host":"...","Authorization":"Bearer ...","Content-Type":"..."}
+   POST data: {"visit_id":"123","checklist_item_id":"456","description":"test"}
+   POST data count: 3
+   FILES: {"photo":{"name":"IMG_123.jpg","type":"image/jpeg","tmp_name":"...","error":0,"size":123456}}
+   FILES count: 1
+   Raw input length: 123456
+   AUTH SUCCESS: User ID 1
+   Validating visit_id...
+   visit_id: 123
+   Validating photo file...
+   Photo file found in $_FILES
+   File info: {"name":"IMG_123.jpg","type":"image/jpeg",...}
+   Attempting to move file to: /path/to/uploads/photos/visit_123_1234567890_abcdef.jpg
+   File uploaded successfully: /path/to/uploads/photos/visit_123_1234567890_abcdef.jpg
+   Saving photo to database: {"visit_id":"123","checklist_item_id":"456",...}
+   Photo saved to database with ID: 789
+   ```
+
+5. POSSIBLE ERRORS TO CHECK:
+
+   A. EMPTY $_POST and $_FILES:
+      ```
+      POST data count: 0
+      FILES count: 0
+      ```
+      Possible causes:
+      - Content-Type header not set correctly
+      - PHP max upload size too small (php.ini: upload_max_filesize, post_max_size)
+      - Apache/Nginx stripping multipart data
+      - .htaccess rewrite rules interfering
+      
+      Solutions:
+      - Check Content-Type: multipart/form-data; boundary=...
+      - Increase PHP limits: upload_max_filesize=10M, post_max_size=10M
+      - Check .htaccess rules (may need PassEnv for multipart)
+
+   B. AUTH FAILED:
+      ```
+      AUTH FAILED: No valid session or token
+      ```
+      Solution: Verify Authorization header forwarding (.htaccess already configured)
+
+   C. visit_id MISSING:
+      ```
+      VALIDATION FAILED: visit_id not in $_POST
+      Available POST keys: [empty or other keys]
+      ```
+      Solution: Check mobile app sending visit_id field correctly
+
+   D. photo NOT IN $_FILES:
+      ```
+      VALIDATION FAILED: photo not in $_FILES
+      Available FILES keys: [empty or other keys]
+      ```
+      Solution: Check mobile app sending 'photo' field name correctly
+
+   E. FILE TOO LARGE:
+      ```
+      File too large: 6291456 bytes (max: 5242880)
+      ```
+      Solution: Increase backend limit OR reduce mobile compression more
+
+6. PHP.INI SETTINGS TO CHECK (via cPanel → Software → Select PHP Version → Options):
+   ```
+   upload_max_filesize = 10M (or higher)
+   post_max_size = 10M (or higher)
+   max_execution_time = 300 (untuk upload slow connection)
+   max_input_time = 300
+   memory_limit = 128M (or higher)
+   ```
+
+7. HTACCESS CHECK:
+   Verify .htaccess has Authorization header forwarding:
+   ```
+   RewriteCond %{HTTP:Authorization} ^(.*)
+   RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+   
+   SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+   ```
+
+8. AFTER GETTING LOGS:
+   Kirimkan screenshot atau copy text dari:
+   - Mobile app LogCat (upload request details)
+   - Backend error_log (request received, POST/FILES data)
+   - Error message dari mobile app
+
+==========================================
+DEBUGGING CHECKLIST:
+==========================================
+
+□ File uploaded to production
+□ Permissions set to 644
+□ Test from mobile app
+□ Check mobile LogCat for request details
+□ Check backend error_log for received data
+□ Verify Content-Type header
+□ Verify $_POST contains visit_id
+□ Verify $_FILES contains photo
+□ Check PHP upload limits
+□ Check upload directory exists (uploads/photos/)
+□ Check upload directory writable (755)
+
+==========================================
+QUICK DIAGNOSIS:
+==========================================
+
+IF LOG SHOWS "POST data count: 0" AND "FILES count: 0":
+→ PHP not receiving multipart data
+→ Check PHP upload limits
+→ Check .htaccess rules
+→ Check Content-Type header
+
+IF LOG SHOWS "AUTH FAILED":
+→ Authorization header not forwarded
+→ Check .htaccess rules
+→ Verify token in mobile request
+
+IF LOG SHOWS "visit_id not in $_POST":
+→ Mobile not sending visit_id field
+→ Check mobile code: request.fields['visit_id']
+
+IF LOG SHOWS "photo not in $_FILES":
+→ Mobile not sending photo file
+→ Check mobile code: request.files.add()
+→ Check field name is 'photo'
+
+==========================================

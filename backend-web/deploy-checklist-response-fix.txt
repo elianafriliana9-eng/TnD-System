@@ -1,0 +1,122 @@
+==========================================
+DEPLOYMENT: Checklist Response Error Fix
+==========================================
+
+TUJUAN:
+- Memperbaiki error HTTP 500 saat menyimpan checklist response
+- Menambahkan detailed error logging untuk debugging
+
+FILES TO UPLOAD:
+1. api/visit-checklist-response.php
+   - Added detailed error logging sebelum dan sesudah saveChecklistResponse()
+   - Log data yang dikirim ke database
+   - Log error jika save gagal
+
+2. classes/Visit.php
+   - Added extensive error logging di saveChecklistResponse() method
+   - Log SQL query, parameters, dan error details (SQLSTATE, Error Code, Error Message)
+   - Capture PDO exceptions dengan full stack trace
+
+LANGKAH DEPLOYMENT:
+
+1. LOGIN KE CPANEL
+   URL: https://billing.cloudhosting.fun:2083
+   Username: [your username]
+
+2. BUKA FILE MANAGER
+   - Navigate to: public_html/backend-web/
+
+3. BACKUP FILES LAMA (IMPORTANT!)
+   - Klik kanan api/visit-checklist-response.php → Copy → Rename ke visit-checklist-response.php.backup-YYYYMMDD
+   - Klik kanan classes/Visit.php → Copy → Rename ke Visit.php.backup-YYYYMMDD
+
+4. UPLOAD FILE BARU
+   - Upload api/visit-checklist-response.php (replace existing)
+   - Upload classes/Visit.php (replace existing)
+   - Verify file permissions: 644
+
+5. VERIFY DEPLOYMENT
+   - Check file sizes (seharusnya lebih besar karena ada logging)
+   - Check timestamps (pastikan baru di-upload)
+
+6. TESTING FROM MOBILE APP
+   a. Buka app, start visit
+   b. Pilih checklist item
+   c. Pilih response (✓/✗/N/A)
+   d. Add notes (optional)
+   e. Tap Save
+   
+7. CHECK LOGS
+   Location: Check with hosting support atau via cPanel Error Log
+   
+   Expected log output jika SUCCESS:
+   ```
+   Attempting to save checklist response: {"visit_id":"123","checklist_item_id":"456","response":"OK","notes":"test"}
+   SQL Query: INSERT INTO visit_checklist_responses...
+   Parameters - visit_id: 123, checklist_point_id: 456, response: OK, notes: test
+   Query executed successfully. Rows affected: 1
+   Checklist response saved successfully
+   ```
+   
+   Expected log output jika ERROR:
+   ```
+   Attempting to save checklist response: {"visit_id":"123","checklist_item_id":"456","response":"OK","notes":"test"}
+   SQL Query: INSERT INTO visit_checklist_responses...
+   Parameters - visit_id: 123, checklist_point_id: 456, response: OK, notes: test
+   CRITICAL SQL ERROR:
+   SQLSTATE: [error code]
+   Error Code: [number]
+   Error Message: [detailed error message]
+   CRITICAL: Failed to save checklist response - saveChecklistResponse returned false
+   ```
+
+8. POSSIBLE ERRORS TO CHECK:
+
+   A. Foreign Key Error (visit_id not exists):
+      Error 1452: Cannot add or update a child row: a foreign key constraint fails
+      Solution: Verify visit_id exists in visits table
+   
+   B. Foreign Key Error (checklist_point_id not exists):
+      Error 1452: Cannot add or update a child row: a foreign key constraint fails
+      Solution: Verify checklist_point_id exists in checklist_points table
+   
+   C. Invalid ENUM value:
+      Error 1265: Data truncated for column 'response'
+      Solution: Verify response value is exactly 'OK', 'NOT OK', or 'N/A'
+   
+   D. Duplicate Key (if unique constraint issue):
+      Error 1062: Duplicate entry
+      Note: Should not happen because we use ON DUPLICATE KEY UPDATE
+
+9. CARA AKSES LOGS DI CPANEL:
+   Option 1: cPanel Error Log
+   - cPanel → Metrics → Errors
+   - Look for recent entries
+   
+   Option 2: PHP Error Log
+   - File Manager → Navigate to: public_html/backend-web/
+   - Look for: error_log or php_errors.log
+   - Download and open with text editor
+   
+   Option 3: Contact Support
+   - Ask hosting support: "Where can I find PHP error logs?"
+
+AFTER DEPLOYMENT:
+1. Test dari mobile app
+2. Kirimkan error logs (screenshot atau copy text)
+3. Jika masih error 500, error logs akan menunjukkan masalah spesifik
+4. Jika sukses, lanjut test photo upload
+
+ROLLBACK JIKA GAGAL:
+1. File Manager → public_html/backend-web/
+2. Delete file yang baru di-upload
+3. Rename backup files:
+   - visit-checklist-response.php.backup-YYYYMMDD → visit-checklist-response.php
+   - Visit.php.backup-YYYYMMDD → Visit.php
+
+==========================================
+NOTES:
+- Jangan lupa BACKUP file lama sebelum upload!
+- Error logs akan sangat detail, mudah untuk diagnose
+- Setelah fix, logs bisa di-disable untuk production
+==========================================

@@ -1,0 +1,148 @@
+==========================================
+QUICK FIX: Photo Upload Error 500
+==========================================
+
+ISSUE:
+Upload Photo Status: 500
+Upload Photo Body: (empty)
+
+This means PHP is NOT receiving the data or encountering error before output.
+
+MOST LIKELY CAUSE: PHP upload limits too small!
+
+==========================================
+STEP 1: CHECK PHP CONFIGURATION
+==========================================
+
+1. Upload file: check-php-config.php to production
+   Location: backend-web/check-php-config.php
+
+2. Open in browser:
+   https://tndsystem.online/backend-web/check-php-config.php
+
+3. Look for RED or ORANGE warnings:
+   - upload_max_filesize < 10M
+   - post_max_size < 10M
+   - file_uploads = DISABLED
+
+==========================================
+STEP 2: FIX PHP SETTINGS (if needed)
+==========================================
+
+cPanel → Software → Select PHP Version → Options
+
+Set these values:
+┌─────────────────────────┬──────────┐
+│ Setting                 │ Value    │
+├─────────────────────────┼──────────┤
+│ upload_max_filesize     │ 10M      │
+│ post_max_size           │ 10M      │
+│ max_execution_time      │ 300      │
+│ max_input_time          │ 300      │
+│ memory_limit            │ 128M     │
+│ file_uploads            │ On       │
+└─────────────────────────┴──────────┘
+
+Click SAVE, then refresh check-php-config.php
+
+==========================================
+STEP 3: DEPLOY BACKEND FILES (if not done)
+==========================================
+
+Upload these 7 files (with table fixes):
+□ classes/Visit.php
+□ api/visit-photo-upload.php
+□ api/visit-detail.php
+□ api/visit-responses.php
+□ api/improvement-recommendations.php
+□ api/generate-recommendation-pdf.php
+□ api/finding-photos.php
+
+All permissions: 644
+
+==========================================
+STEP 4: TEST UPLOAD AGAIN
+==========================================
+
+From mobile app:
+1. Start visit
+2. Take small photo (in dark room = small file)
+3. Upload photo
+4. Check LogCat output
+
+Expected if PHP limits fixed:
+✅ Upload Photo Status: 200
+✅ Upload Photo Body: {"success":true,...}
+
+Expected if still error 500:
+Check backend error logs for detailed error
+
+==========================================
+STEP 5: CHECK BACKEND LOGS
+==========================================
+
+cPanel → Metrics → Errors
+Or: File Manager → backend-web/error_log
+
+Look for these logs (from visit-photo-upload.php):
+- "POST data count: X"
+- "FILES count: X"
+- "Content-Type: ..."
+
+If count = 0:
+→ PHP upload limits still too small
+→ Or .htaccess blocking multipart data
+
+If count > 0:
+→ Data received OK
+→ Look for SQL error in logs
+
+==========================================
+QUICK DIAGNOSIS TABLE
+==========================================
+
+Symptom                          Cause
+------------------------------   ---------------------------
+POST count: 0, FILES count: 0   → PHP upload limits
+Response Body: empty             → PHP error before output
+Status: 500                      → Server error
+Status: 401                      → Auth failed
+Status: 200, success: false      → Validation error
+
+==========================================
+ALTERNATIVE: Test with curl
+==========================================
+
+Windows PowerShell:
+```powershell
+$token = "YOUR_TOKEN_HERE"
+$url = "https://tndsystem.online/backend-web/api/visit-photo-upload.php"
+$filePath = "C:\path\to\test.jpg"
+
+curl.exe -X POST $url `
+  -H "Authorization: Bearer $token" `
+  -F "visit_id=12" `
+  -F "checklist_item_id=40" `
+  -F "description=Test upload" `
+  -F "photo=@$filePath" `
+  -v
+```
+
+Look for:
+- HTTP status code
+- Response body
+- Any error messages
+
+==========================================
+CLEANUP AFTER FIX
+==========================================
+
+DELETE from production (security):
+□ check-php-config.php
+□ check-database.php
+□ create-upload-dirs.php
+□ Any other diagnostic files
+
+These files expose server configuration!
+
+==========================================

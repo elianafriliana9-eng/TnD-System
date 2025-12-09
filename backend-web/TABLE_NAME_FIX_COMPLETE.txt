@@ -1,0 +1,149 @@
+==========================================
+CRITICAL FIX: Table Name Mismatch
+==========================================
+
+MASALAH DITEMUKAN:
+- Production database menggunakan table: `photos`
+- Development database (Laragon) menggunakan table: `visit_photos`
+- 2 API endpoints masih query ke table lama (`visit_photos`)
+
+IMPACT:
+❌ generate-recommendation-pdf.php → Error saat generate PDF (table not found)
+❌ finding-photos.php → Error saat load photo findings (table not found)
+❌ Photo upload mungkin error karena query ke table yang salah
+
+FILES FIXED:
+1. api/generate-recommendation-pdf.php
+   - Changed: FROM visit_photos → FROM photos
+   - Changed: vp.checklist_item_id → p.item_id
+   - Changed: vp.photo_path → p.file_path
+   
+2. api/finding-photos.php
+   - Changed: FROM visit_photos → FROM photos
+   - Changed: vp.checklist_item_id → p.item_id
+   - Changed: vp.photo_path → p.file_path
+
+COLUMN MAPPING:
+Development (Laragon)     Production (cPanel)
+---------------------     -------------------
+Table: visit_photos  →    Table: photos
+checklist_item_id    →    item_id
+photo_path           →    file_path
+(other columns sama)
+
+==========================================
+VERIFICATION COMPLETE
+==========================================
+
+✅ Visit.php savePhoto() → Uses `photos` table
+✅ Visit.php findById() → Uses `photos` table
+✅ visit-photo-upload.php → Calls Visit::savePhoto()
+✅ visit-detail.php → Uses `photos` table
+✅ improvement-recommendations.php → Uses `photos` table
+✅ visit-reports.php → Uses `photos` table
+✅ generate-recommendation-pdf.php → NOW FIXED
+✅ finding-photos.php → NOW FIXED
+
+No more references to `visit_photos` in active code!
+(Only in migration scripts which are not used in production)
+
+==========================================
+DEPLOYMENT STEPS
+==========================================
+
+1. BACKUP FILES LAMA
+   - api/generate-recommendation-pdf.php → .backup-20251103
+   - api/finding-photos.php → .backup-20251103
+
+2. UPLOAD FILES BARU
+   - api/generate-recommendation-pdf.php (permissions: 644)
+   - api/finding-photos.php (permissions: 644)
+
+3. FILES TO UPLOAD IN TOTAL (Photo Upload Fix):
+   a. api/visit-photo-upload.php (detailed logging)
+   b. api/generate-recommendation-pdf.php (table name fix)
+   c. api/finding-photos.php (table name fix)
+
+4. VERIFY DEPLOYMENT
+   - Check file sizes
+   - Check timestamps
+   - Check permissions (644)
+
+==========================================
+TESTING AFTER DEPLOYMENT
+==========================================
+
+1. TEST PHOTO UPLOAD
+   - Start visit
+   - Take photo
+   - Upload → Should work now!
+
+2. TEST PDF GENERATION
+   - Generate recommendation PDF
+   - Should include photos now
+
+3. TEST FINDING PHOTOS
+   - View finding photos from report
+   - Should display photos now
+
+4. CHECK LOGS
+   - Look for detailed upload logs
+   - Verify no "Table 'visit_photos' doesn't exist" errors
+
+==========================================
+EXPECTED RESULTS
+==========================================
+
+BEFORE FIX:
+❌ Error 500 on photo upload
+❌ Error on PDF generation: Table 'visit_photos' doesn't exist
+❌ Error on finding photos: Table 'visit_photos' doesn't exist
+
+AFTER FIX:
+✅ Photo upload works (with detailed logs)
+✅ PDF generation includes photos
+✅ Finding photos displays correctly
+✅ All queries use correct table name: `photos`
+
+==========================================
+ROOT CAUSE ANALYSIS
+==========================================
+
+Problem: Development environment dan Production environment 
+         menggunakan schema database yang berbeda.
+
+Why it happened:
+1. Development started with `visit_photos` table
+2. Production database already had `photos` table
+3. Previous fixes updated some files but not all
+4. Inconsistent naming between environments
+
+How we found it:
+1. User reported: "database baru ada table photos"
+2. User reported: "database lama (laragon) ada visit_photos"
+3. Searched codebase for "visit_photos" references
+4. Found 2 remaining API endpoints using old table name
+
+Prevention:
+✅ Always check BOTH development and production schema
+✅ Use migration scripts to sync schemas
+✅ Search entire codebase for old table names
+✅ Document all table name mappings
+
+==========================================
+COMPLETE FILE CHANGES SUMMARY
+==========================================
+
+SESSION 1 (Previous fixes):
+- Visit.php → Updated to use `photos`, `item_id`, `file_path`
+- visit-photo-upload.php → Updated to use production naming
+- visit-checklist-response.php → Updated to use `checklist_point_id`
+
+SESSION 2 (This fix):
+- generate-recommendation-pdf.php → Updated to use `photos` table
+- finding-photos.php → Updated to use `photos` table
+- visit-photo-upload.php → Added detailed logging
+
+STATUS: Ready for production deployment! 🚀
+
+==========================================

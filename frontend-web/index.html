@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TND System - Super Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="assets/css/admin.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/img/logo T&D 2-02.png">
+    <script>
+        // Quick session check - redirect to login if no valid session
+        (function() {
+            const userData = localStorage.getItem('userData');
+            const lastActivity = localStorage.getItem('lastActivity');
+            const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+            
+            if (!userData || !lastActivity) {
+                console.log('❌ No session found, redirecting to login...');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const now = new Date().getTime();
+            const timeSinceLastActivity = now - parseInt(lastActivity);
+            
+            if (timeSinceLastActivity > SESSION_TIMEOUT) {
+                console.log('⏰ Session expired, redirecting to login...');
+                localStorage.removeItem('userData');
+                localStorage.removeItem('lastActivity');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            console.log('✅ Valid session found, loading dashboard...');
+        })();
+    </script>
+</head>
+<body class="modern-dashboard">
+    <!-- Top Navigation -->
+    <nav class="top-navbar">
+        <div class="container-fluid">
+            <div class="navbar-content">
+                <div class="navbar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="brand-logo">
+                        <img src="assets/img/logo T&D 2-02.png" alt="T&D Logo" class="logo-img">
+                        <span class="brand-text">T&D System</span>
+                    </div>
+                </div>
+                
+                <div class="navbar-right">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search...">
+                    </div>
+                    
+                    <div class="nav-item notification-icon">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge-dot"></span>
+                    </div>
+                    
+                    <div class="nav-item" id="sessionIndicator" title="Session Active">
+                        <i class="fas fa-circle text-success" style="font-size: 10px;"></i>
+                    </div>
+                    
+                    <div class="nav-item dropdown">
+                        <div class="user-menu" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name" id="user-name">Loading...</span>
+                                <span class="user-role">Super Admin</span>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+                            <li><a class="dropdown-item" href="#" onclick="showProfile()">
+                                <i class="fas fa-user me-2"></i>My Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showChangePassword()">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="modern-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h6 class="sidebar-title">NAVIGATION</h6>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item active" onclick="showDashboard()">
+                <a href="#" class="menu-link">
+                    <div class="menu-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            
+            <li class="menu-item" onclick="showUsers()">
+                <a href="#" class="menu-link">
+                    <div class="menu-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <span class="menu-text">User Management</span>
+                </a>
+            </li>
+            
+            <li class="menu-item" onclick="showOutlets()">
+                <a href="#" class="menu-link">
+                    <div class="menu-icon">
+                        <i class="fas fa-store-alt"></i>
+                    </div>
+                    <span class="menu-text">Outlets</span>
+                </a>
+            </li>
+            
+            <li class="menu-item" onclick="showChecklistManagement()">
+                <a href="#" class="menu-link">
+                    <div class="menu-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <span class="menu-text">Checklist Setup</span>
+                </a>
+            </li>
+            
+            <!-- TRAINING MENU - HIDDEN (PHASE 2)
+            <li class="menu-item" onclick="showTraining()">
+                <a href="#" class="menu-link">
+                    <div class="menu-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <span class="menu-text">Training</span>
+                </a>
+            </li>
+            
+            <li class="menu-item" onclick="showTrainingReports()">
+                <a href="#" class="menu-link">
+                    <div class="menu-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <span class="menu-text">Laporan Training</span>
+                </a>
+            </li>
+            END TRAINING MENU -->
+            
+            <li class="menu-item" onclick="showReports()">
+                <a href="#" class="menu-link">
+                    <div class="menu-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <span class="menu-text">Analytics & Reports</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <div class="sidebar-card">
+                <i class="fas fa-headset"></i>
+                <h6>Need Support?</h6>
+                <p>Get help with your system</p>
+                <button class="btn btn-sm btn-light">
+                    <i class="fas fa-question-circle me-1"></i>Help Center
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-wrapper">
+            <div id="content-area">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="modal-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        // Sidebar toggle
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.getElementById('mainContent').classList.toggle('expanded');
+        });
+    </script>
+    <script src="assets/js/api.js?v=1.8"></script>
+    <script src="assets/js/auth.js?v=1.8"></script>
+    <script src="assets/js/admin.js?v=1.8"></script>
+    <script src="assets/js/dashboard.js?v=1.8"></script>
+    <script src="assets/js/users.js?v=1.8"></script>
+    <script src="assets/js/outlets.js?v=1.8"></script>
+    <script src="assets/js/training.js?v=1.8"></script>
+</body>
+</html>

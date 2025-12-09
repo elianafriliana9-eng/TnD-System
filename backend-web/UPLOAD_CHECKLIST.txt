@@ -1,0 +1,97 @@
+========================================
+QUICK UPLOAD CHECKLIST - Photo Bug Fix
+========================================
+
+📤 FILES TO UPLOAD VIA CPANEL:
+========================================
+
+1. backend-web/classes/Visit.php
+   Location: c:\laragon\www\tnd_system\tnd_system\backend-web\classes\Visit.php
+   Upload to: public_html/backend-web/classes/
+   Action: OVERWRITE existing file
+   ✅ Contains auto-delete photos logic
+   
+2. backend-web/cleanup-orphaned-photos.sql
+   Location: c:\laragon\www\tnd_system\tnd_system\backend-web\cleanup-orphaned-photos.sql
+   Upload to: public_html/backend-web/
+   Action: NEW FILE
+   ✅ SQL script for data cleanup
+   
+3. backend-web/PHOTO_ON_OK_RESPONSE_BUG_FIX.md
+   Location: c:\laragon\www\tnd_system\tnd_system\backend-web\PHOTO_ON_OK_RESPONSE_BUG_FIX.md
+   Upload to: public_html/backend-web/
+   Action: NEW FILE
+   ✅ Documentation
+   
+4. backend-web/DEPLOYMENT_GUIDE_PHOTO_FIX.md
+   Location: c:\laragon\www\tnd_system\tnd_system\backend-web\DEPLOYMENT_GUIDE_PHOTO_FIX.md
+   Upload to: public_html/backend-web/
+   Action: NEW FILE
+   ✅ Deployment instructions
+
+========================================
+🗄️ DATABASE CLEANUP (phpMyAdmin):
+========================================
+
+STEP 1 - DRY RUN (Check orphaned photos):
+------------------------------------------
+SELECT p.id, p.visit_id, p.item_id, vcr.response, cp.question, p.file_name
+FROM photos p
+INNER JOIN visit_checklist_responses vcr 
+    ON p.visit_id = vcr.visit_id AND p.item_id = vcr.checklist_point_id
+INNER JOIN checklist_points cp ON p.item_id = cp.id
+WHERE vcr.response IN ('OK', 'N/A')
+ORDER BY p.visit_id DESC;
+
+STEP 2 - DELETE (If step 1 shows results):
+-------------------------------------------
+DELETE p FROM photos p
+INNER JOIN visit_checklist_responses vcr 
+    ON p.visit_id = vcr.visit_id AND p.item_id = vcr.checklist_point_id
+WHERE vcr.response IN ('OK', 'N/A');
+
+STEP 3 - VERIFY (Should return 0 rows):
+----------------------------------------
+SELECT COUNT(*) as orphaned_photos_count
+FROM photos p
+INNER JOIN visit_checklist_responses vcr 
+    ON p.visit_id = vcr.visit_id AND p.item_id = vcr.checklist_point_id
+WHERE vcr.response IN ('OK', 'N/A');
+
+========================================
+✅ VERIFICATION:
+========================================
+
+After upload, test:
+
+1. Mobile app: Create visit → NOK → Upload photo → Change to OK
+   Expected: Photo deleted automatically ✅
+   
+2. Visit Detail: Check item shows as OK WITHOUT photo ✅
+
+3. Web Admin: Reports show correct data ✅
+
+4. Check logs: No PHP errors ✅
+
+========================================
+📁 FILE MAPPING (What goes where):
+========================================
+
+LOCAL FILE                                    → SERVER PATH
+------------------------------------------------------------------------
+backend-web/classes/Visit.php                 → public_html/backend-web/classes/Visit.php
+backend-web/cleanup-orphaned-photos.sql       → public_html/backend-web/cleanup-orphaned-photos.sql
+backend-web/PHOTO_ON_OK_RESPONSE_BUG_FIX.md  → public_html/backend-web/PHOTO_ON_OK_RESPONSE_BUG_FIX.md
+backend-web/DEPLOYMENT_GUIDE_PHOTO_FIX.md    → public_html/backend-web/DEPLOYMENT_GUIDE_PHOTO_FIX.md
+
+========================================
+⚠️ IMPORTANT NOTES:
+========================================
+
+✅ Visit.php is in classes/ folder (NOT in api/ folder!)
+✅ API files (visit-checklist-response.php) NO CHANGE
+✅ Backup database before running cleanup
+✅ Test on production after upload
+✅ Mobile app rebuild NOT required (backend handles deletion)
+
+========================================

@@ -1,0 +1,70 @@
+🚀 QUICK DEPLOYMENT GUIDE - TND Mobile Fix
+===========================================
+
+📦 UPLOAD FILES (14 files total)
+---------------------------------
+Backend PHP (12 files):
+  ├── .htaccess
+  ├── api/outlets.php
+  ├── api/report-overview.php
+  ├── api/report-by-outlet.php
+  ├── api/improvement-recommendations.php
+  ├── api/visits-create.php
+  ├── api/visit-complete.php
+  ├── api/visit-photo-upload.php
+  ├── utils/Auth.php
+  ├── classes/Visit.php
+  ├── classes/Audit.php
+  └── classes/Outlet.php
+
+Setup Scripts (2 files):
+  ├── create-upload-dirs.php (DELETE after running!)
+  └── migrate-database-complete.php (DELETE after running!)
+
+🔧 DEPLOYMENT STEPS
+-------------------
+1. Upload 14 files ke cPanel File Manager
+   → Path: ~/public_html/backend-web/
+
+2. Run setup scripts via browser (IN ORDER!)
+   → URL 1: https://tndsystem.online/backend-web/create-upload-dirs.php
+   → Verify: All ✅ green checkmarks
+   → DELETE file after success
+   
+   → URL 2: https://tndsystem.online/backend-web/migrate-database-complete.php
+   → Verify: Both tables migrated ✅
+   → CHECK: visit_photos & visit_checklist_responses have checklist_item_id
+   → DELETE file after success
+
+3. Rebuild mobile app
+   → cd tnd_mobile_flutter
+   → flutter clean && flutter pub get && flutter build apk
+
+4. Install APK baru di device
+
+✅ TEST CHECKLIST
+-----------------
+[ ] Login (already working)
+[ ] Start Visit → Outlet list by division
+[ ] Report → Data loaded
+[ ] Recommendations → No 401
+[ ] Profile → Show full_name, division
+[ ] Checklist Responses → Save ✓/✗/N/A (no 500!)
+[ ] Photo Upload → No 500, size ~50-100KB
+
+🎯 EXPECTED FIXES
+-----------------
+✅ Authorization header forwarded
+✅ Outlet filtered by division_id
+✅ Database columns fixed (started_at, completed_at, u.name)
+✅ Image compressed 70% quality, 1280x720
+✅ Upload directories created with 755 permissions
+
+⚠️ IMPORTANT
+-------------
+- Backup old files first
+- Delete create-upload-dirs.php after running
+- Check backend-web/logs/ if any errors
+- Monitor upload file sizes (should be <100KB)
+
+📄 Full Details: See DEPLOYMENT_FILES_LIST.md

@@ -1,0 +1,88 @@
+==========================================
+QUICK DATABASE VERIFICATION CHECKLIST
+==========================================
+
+SEBELUM TEST CHECKLIST RESPONSE, VERIFY:
+
+1. TABLE: visit_checklist_responses
+   ✓ Exists
+   ✓ Columns: id, visit_id, checklist_point_id, response, notes, created_at, updated_at
+   ✓ response column is ENUM('OK', 'NOT OK', 'N/A')
+   ✓ Foreign key: visit_id → visits(id)
+   ✓ Foreign key: checklist_point_id → checklist_points(id)
+   ✓ Unique constraint: (visit_id, checklist_point_id)
+
+2. TABLE: visits
+   ✓ Has at least 1 active visit
+   ✓ Check: SELECT * FROM visits WHERE id = [your_test_visit_id]
+   ✓ Verify: outlet_id, user_id, visit_date exist
+
+3. TABLE: checklist_points
+   ✓ Has checklist items
+   ✓ Check: SELECT * FROM checklist_points LIMIT 5
+   ✓ Note down valid checklist_point_id values
+
+4. TABLE: checklists
+   ✓ Has active checklists
+   ✓ Check: SELECT * FROM checklists WHERE is_active = 1
+
+TESTING DATA YANG DIBUTUHKAN:
+
+Dari mobile app testing, catat:
+- visit_id: ___________ (dari start visit)
+- checklist_item_id: ___________ (dari checklist screen)
+- response: ok / not_ok / na
+- notes: "Test response" (optional)
+
+VERIFY FOREIGN KEY DEPENDENCIES:
+
+Query 1: Verify visit exists
+```sql
+SELECT id, outlet_id, user_id, visit_date 
+FROM visits 
+WHERE id = [visit_id_from_mobile];
+```
+Expected: 1 row returned
+
+Query 2: Verify checklist_point exists
+```sql
+SELECT id, checklist_id, description 
+FROM checklist_points 
+WHERE id = [checklist_item_id_from_mobile];
+```
+Expected: 1 row returned
+
+Query 3: Check existing responses
+```sql
+SELECT * FROM visit_checklist_responses 
+WHERE visit_id = [visit_id_from_mobile];
+```
+Expected: 0 rows (fresh visit) atau existing responses
+
+EXPECTED RESULTS AFTER SAVE:
+
+Success scenario:
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Response saved successfully"
+  }
+}
+```
+
+Error scenario (sekarang dengan detail):
+```json
+{
+  "success": false,
+  "message": "Failed to save response. Check logs for details.",
+  "errors": null
+}
+```
+
+Then check logs for:
+- SQLSTATE: ___________
+- Error Code: ___________
+- Error Message: ___________
+
+==========================================

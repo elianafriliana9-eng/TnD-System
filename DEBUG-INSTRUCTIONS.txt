@@ -1,0 +1,74 @@
+========================================
+  TND SYSTEM DEBUGGING INSTRUCTIONS
+========================================
+
+ERROR: "Auth API not found" saat login
+
+SOLUTION STEPS:
+========================================
+
+1. BUKA BROWSER TABS BERIKUT:
+
+   Tab 1 - Login Debug:
+   http://localhost/tnd_system/tnd_system/frontend-web/login-debug.html
+
+   Tab 2 - API Debug:
+   http://localhost/tnd_system/tnd_system/frontend-web/api-debug.html
+
+   Tab 3 - Original Login:
+   http://localhost/tnd_system/tnd_system/frontend-web/login.html
+
+2. TEST SEQUENCE:
+
+   A. Di Tab 1 (Login Debug):
+      - Klik "Test Login" 
+      - Lihat debug output di area debug
+      - Catat error messages yang muncul
+
+   B. Di Tab 2 (API Debug):
+      - Klik "Test Health" (should work)
+      - Klik "Test Login" (check if works)
+      - Klik "Test Me" (after successful login)
+      - Klik "Test Users" (should work after login)
+
+   C. Di Tab 3 (Original Login):
+      - Buka Developer Tools (F12)
+      - Check Console tab for errors
+      - Check Network tab for failed requests
+      - Try login with: admin@tnd-system.com / password
+
+3. COMMON ISSUES TO CHECK:
+
+   ✓ CORS errors in browser console
+   ✓ 404 errors for API endpoints
+   ✓ Session/Cookie issues
+   ✓ JavaScript errors
+
+4. EXPECTED BEHAVIOR:
+
+   ✓ Health check: Should return JSON with status "OK"
+   ✓ Login: Should return user data with success=true
+   ✓ Me endpoint: Should work after login
+   ✓ Users endpoint: Should return users list for admin
+
+5. IF STILL FAILING:
+
+   Check these files exist:
+   - backend-web/api/login-session.php
+   - backend-web/api/health.php
+   - backend-web/api/me.php
+   - backend-web/api/users-auth.php
+
+MANUAL TEST COMMANDS:
+========================================
+
+PowerShell commands to test API directly:
+
+# Test Health
+Invoke-RestMethod -Uri "http://localhost/tnd_system/tnd_system/backend-web/api/health.php"
+
+# Test Login
+$body = '{"email":"admin@tnd-system.com","password":"password"}'
+Invoke-RestMethod -Uri "http://localhost/tnd_system/tnd_system/backend-web/api/login-session.php" -Method Post -Body $body -ContentType "application/json"
+
+========================================

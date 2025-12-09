@@ -1,0 +1,228 @@
+═══════════════════════════════════════════════════════════════
+  TND SYSTEM - PHOTO UPLOAD FIX - FINAL DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+🎯 ISSUE BEING FIXED:
+- Error: Column 'checklist_item_id' not found
+- HTTP 500 on photo upload
+- All input data not being saved
+
+📦 FILES READY FOR UPLOAD: 14/14 ✅
+
+═══════════════════════════════════════════════════════════════
+STEP 1: BACKUP (CRITICAL!)
+═══════════════════════════════════════════════════════════════
+[ ] Login to cPanel: https://tndsystem.online:2083
+[ ] Navigate to phpMyAdmin
+[ ] Select database: tnd_system
+[ ] Click "Export" tab
+[ ] Select "Quick" export method
+[ ] Format: SQL
+[ ] Click "Export" button
+[ ] Save file as: tnd_system_backup_YYYYMMDD.sql
+[ ] Verify backup file downloaded successfully
+
+═══════════════════════════════════════════════════════════════
+STEP 2: UPLOAD BACKEND FILES (12 files)
+═══════════════════════════════════════════════════════════════
+[ ] Login to cPanel File Manager
+[ ] Navigate to: public_html/backend-web/
+[ ] Upload these files (overwrite existing):
+
+    Configuration:
+    [ ] .htaccess
+
+    API Endpoints (7 files):
+    [ ] api/outlets.php
+    [ ] api/report-overview.php
+    [ ] api/report-by-outlet.php
+    [ ] api/improvement-recommendations.php
+    [ ] api/visits-create.php
+    [ ] api/visit-complete.php
+    [ ] api/visit-photo-upload.php
+
+    Utilities:
+    [ ] utils/Auth.php
+
+    Models:
+    [ ] classes/Visit.php
+    [ ] classes/Audit.php
+    [ ] classes/Outlet.php
+
+[ ] Verify all files uploaded (check file sizes match)
+[ ] Check file permissions (should be 644 or 0644)
+
+═══════════════════════════════════════════════════════════════
+STEP 3: UPLOAD SETUP SCRIPTS (2 files)
+═══════════════════════════════════════════════════════════════
+[ ] Still in: public_html/backend-web/
+[ ] Upload:
+    [ ] create-upload-dirs.php
+    [ ] migrate-visit-photos.php
+
+═══════════════════════════════════════════════════════════════
+STEP 4: CREATE UPLOAD DIRECTORIES
+═══════════════════════════════════════════════════════════════
+[ ] Open browser tab
+[ ] Navigate to: https://tndsystem.online/backend-web/create-upload-dirs.php
+[ ] Wait for page to load completely
+[ ] Verify messages:
+    [ ] ✅ Created: uploads (755)
+    [ ] ✅ Created: uploads/visit_photos (755)
+    [ ] ✅ Created: uploads/profile_photos (755)
+    [ ] ✅ Created: uploads/training_photos (755)
+    [ ] ✅ Created: uploads/temp (755)
+    [ ] ✅ Security .htaccess created
+    [ ] ✅ Index.php files created
+[ ] Verify all directories show: EXISTS, WRITABLE
+[ ] Return to cPanel File Manager
+[ ] Delete file: create-upload-dirs.php ⚠️ IMPORTANT!
+
+═══════════════════════════════════════════════════════════════
+STEP 5: RUN DATABASE MIGRATION
+═══════════════════════════════════════════════════════════════
+[ ] Open browser tab
+[ ] Navigate to: https://tndsystem.online/backend-web/migrate-visit-photos.php
+[ ] Read the migration page carefully
+[ ] Verify migration steps:
+    [ ] Step 1: Current structure checked
+    [ ] Step 2: Column checklist_item_id added
+    [ ] Step 3: Foreign key constraint added
+    [ ] Step 4: Final structure verified
+[ ] Check table structure shows:
+    [ ] Column: id (INT)
+    [ ] Column: visit_id (INT)
+    [ ] Column: checklist_item_id (INT) ← NEW!
+    [ ] Column: photo_path (VARCHAR)
+    [ ] Column: description (TEXT)
+    [ ] Column: uploaded_at (TIMESTAMP)
+[ ] Verify Foreign Key section shows:
+    [ ] visit_photos_ibfk_1 → visits.id
+    [ ] visit_photos_checklist_item_fk → checklist_points.id ← NEW!
+[ ] See success message: "Migration completed successfully!"
+[ ] Return to cPanel File Manager
+[ ] Delete file: migrate-visit-photos.php ⚠️ IMPORTANT!
+
+═══════════════════════════════════════════════════════════════
+STEP 6: REBUILD MOBILE APP
+═══════════════════════════════════════════════════════════════
+[ ] Open PowerShell/Terminal
+[ ] Run commands:
+    cd C:\laragon\www\tnd_system\tnd_system\tnd_mobile_flutter
+    flutter clean
+    flutter pub get
+    flutter build apk --release
+
+[ ] Wait for build to complete (3-5 minutes)
+[ ] Verify output shows: "Built build\app\outputs\flutter-apk\app-release.apk"
+[ ] Check APK file size (should be ~30-50MB)
+
+═══════════════════════════════════════════════════════════════
+STEP 7: INSTALL & TEST
+═══════════════════════════════════════════════════════════════
+[ ] Transfer APK to Android device
+[ ] Install: build/app/outputs/flutter-apk/app-release.apk
+[ ] Open TND Mobile App
+
+Test 1: Login
+[ ] Login with credentials
+[ ] Verify: Login successful ✅
+
+Test 2: Outlet List (Division Filter)
+[ ] Go to: Start Visit
+[ ] Verify: Outlet list shows (not empty)
+[ ] Verify: Outlets match user's division
+
+Test 3: Photo Upload
+[ ] Start a visit
+[ ] Select an outlet
+[ ] Go to checklist
+[ ] Take or select a photo
+[ ] Watch console logs:
+    [ ] "Photo selected: ..." shows compressed file
+    [ ] "File size: ..." shows ~50,000-100,000 bytes (not 196KB)
+    [ ] "Upload Photo Status: 200" (not 500!) ✅
+[ ] Verify: "Photo uploaded successfully" message
+[ ] Verify: Photo appears in visit details
+
+Test 4: Report
+[ ] Go to: Reports
+[ ] Verify: Report data loaded (not empty)
+
+Test 5: Recommendations
+[ ] Go to: Recommendations
+[ ] Verify: No 401 error
+[ ] Verify: Recommendations list loads
+
+Test 6: Profile
+[ ] Go to: Profile
+[ ] Verify: Name, email, division displayed
+[ ] Verify: Photo (if any) displayed
+
+═══════════════════════════════════════════════════════════════
+STEP 8: VERIFY ON SERVER
+═══════════════════════════════════════════════════════════════
+[ ] Login to cPanel File Manager
+[ ] Navigate to: public_html/backend-web/uploads/visit_photos/
+[ ] Verify: New photo files exist (visit_X_timestamp_uniqueid.jpg)
+[ ] Check file size: Should be 50-100KB
+
+[ ] Check database:
+    [ ] Open phpMyAdmin
+    [ ] Table: visit_photos
+    [ ] Verify new records have checklist_item_id populated
+
+[ ] Check logs (if needed):
+    [ ] Navigate to: backend-web/logs/
+    [ ] Open: app.log
+    [ ] Look for: "Visit photo saved successfully with ID: X"
+
+═══════════════════════════════════════════════════════════════
+SUCCESS CRITERIA:
+═══════════════════════════════════════════════════════════════
+✅ All 14 files uploaded
+✅ Upload directories created (755 permissions)
+✅ Database migration completed
+✅ Column checklist_item_id exists
+✅ Foreign key constraint added
+✅ Setup scripts deleted
+✅ Mobile app rebuilt
+✅ Photo upload returns HTTP 200
+✅ Photo file < 100KB
+✅ Photo saved to database with checklist_item_id
+✅ Photo file exists on server
+✅ All other features working
+
+═══════════════════════════════════════════════════════════════
+ROLLBACK PROCEDURE (if needed):
+═══════════════════════════════════════════════════════════════
+1. Restore database backup:
+   - phpMyAdmin → Import → Select backup file
+   
+2. Delete new files (if needed):
+   - Delete uploaded PHP files
+   - Re-upload old versions
+   
+3. Remove migration:
+   - ALTER TABLE visit_photos DROP COLUMN checklist_item_id;
+
+═══════════════════════════════════════════════════════════════
+ESTIMATED TIME:
+═══════════════════════════════════════════════════════════════
+- Backup: 2 minutes
+- Upload files: 5 minutes
+- Run scripts: 3 minutes
+- Rebuild app: 5 minutes
+- Testing: 10 minutes
+---------------------------
+Total: ~25 minutes
+
+═══════════════════════════════════════════════════════════════
+COMPLETED BY: _________________ DATE: ___________ TIME: ______
+═══════════════════════════════════════════════════════════════
+
+NOTES:
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________

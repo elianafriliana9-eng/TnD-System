@@ -1,0 +1,68 @@
+==========================================
+QUICK DEBUG: Photo Upload Error 500
+==========================================
+
+PHP Settings: ✅ ALREADY FIXED (10M, 300s)
+But still error 500 with empty body
+
+NEXT STEP: Test if PHP receives data at all
+
+==========================================
+ACTION 1: Upload Test File
+==========================================
+
+File: test-upload-simple.php
+Upload to: public_html/backend-web/
+Permissions: 644
+
+This will show if PHP receives POST/FILES data.
+
+==========================================
+ACTION 2: Check Production Error Log
+==========================================
+
+cPanel → Metrics → Errors
+Or: File Manager → error_log in backend-web/
+
+Look for recent errors (last 5 minutes).
+
+Possible errors:
+- "Table 'photos' doesn't exist" → Files not uploaded
+- "Column 'item_id' unknown" → Files not uploaded
+- "No POST data" → PHP limits (but we fixed this)
+- "Authorization required" → Auth issue
+
+==========================================
+ACTION 3: Upload Backend Files
+==========================================
+
+If error log shows table/column errors:
+
+Upload these 7 files via cPanel File Manager:
+1. classes/Visit.php
+2. api/visit-photo-upload.php
+3. api/visit-detail.php
+4. api/visit-responses.php
+5. api/improvement-recommendations.php
+6. api/generate-recommendation-pdf.php
+7. api/finding-photos.php
+
+To: public_html/backend-web/
+Permissions: 644
+
+==========================================
+QUICK TEST
+==========================================
+
+After uploading files, test photo upload again.
+
+Expected:
+✅ Status: 200
+✅ Body: {"success":true,...}
+
+If still 500:
+→ Check error_log immediately
+→ Copy error message
+→ Send to me
+
+==========================================

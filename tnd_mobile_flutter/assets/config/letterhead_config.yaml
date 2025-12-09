@@ -1,0 +1,21 @@
+# Company Letterhead Configuration
+# Kop Surat Perusahaan untuk PDF Report
+
+## Configuration
+company_name: "TND SYSTEM"
+company_address: "Jl. Contoh No. 123, Jakarta 12345"
+company_phone: "+62 21 1234 5678"
+company_email: "info@tndsystem.com"
+company_website: "www.tndsystem.com"
+
+## Logo
+# Place your company logo as: assets/images/company_logo.png
+# Recommended size: 200x80 pixels (transparent PNG)
+logo_path: "assets/images/company_logo.png"
+
+## Report Title
+report_title: "LAPORAN REKOMENDASI PERBAIKAN"
+report_subtitle: "Hasil Audit Kunjungan Outlet"
+
+## Footer
+footer_text: "Dokumen ini dibuat secara elektronik dan sah tanpa tanda tangan basah"

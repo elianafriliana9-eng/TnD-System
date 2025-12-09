@@ -1,0 +1,152 @@
+==========================================
+VERIFY PHOTOS TABLE SCHEMA
+==========================================
+
+Dari check-database.php sebelumnya, table photos memiliki:
+
+COLUMNS (9):
+1. id - Primary key
+2. visit_id - Foreign key to visits(id)
+3. item_id - Checklist item/point ID (nullable)
+4. file_path - Path to uploaded file
+5. file_name - Original filename
+6. file_size - File size in bytes (nullable)
+7. mime_type - MIME type (image/jpeg, image/png) (nullable)
+8. caption - Photo description (nullable)
+9. uploaded_at - Timestamp
+
+CURRENT STATUS: 0 rows
+
+==========================================
+MOBILE → BACKEND → DATABASE MAPPING
+==========================================
+
+MOBILE SENDS (via VisitService.uploadPhoto):
+- visit_id: int (required) → $_POST['visit_id']
+- checklist_item_id: int (optional) → $_POST['checklist_item_id']
+- description: String (optional) → $_POST['description']
+- photo: File (required) → $_FILES['photo']
+
+BACKEND RECEIVES (visit-photo-upload.php):
+- $_POST['visit_id'] → validates exists
+- $_POST['checklist_item_id'] → optional
+- $_POST['description'] → optional
+- $_FILES['photo'] → validates exists, type, size
+
+BACKEND PREPARES (visit-photo-upload.php):
+$photoData = [
+  'visit_id' => $_POST['visit_id'],
+  'checklist_item_id' => $_POST['checklist_item_id'] ?? null,
+  'photo_path' => 'uploads/photos/' . $fileName,
+  'description' => $_POST['description'] ?? null,
+  'file_size' => filesize($filePath),
+  'mime_type' => mime_content_type($filePath),
+];
+
+DATABASE SAVES (Visit.php savePhoto):
+INSERT INTO photos (
+  visit_id,           ← $data['visit_id']
+  item_id,            ← $data['checklist_item_id'] (mapped)
+  file_path,          ← $data['photo_path'] (mapped)
+  file_name,          ← basename($data['photo_path'])
+  file_size,          ← $data['file_size']
+  mime_type,          ← $data['mime_type']
+  caption             ← $data['description'] (mapped)
+)
+
+==========================================
+FIELD MAPPING SUMMARY
+==========================================
+
+Mobile Field          Backend Field         Database Column
+--------------        ----------------      ---------------
+visit_id          →   visit_id          →   visit_id
+checklist_item_id →   checklist_item_id →   item_id
+description       →   description       →   caption
+photo (File)      →   photo_path        →   file_path
+                  →   (extracted)       →   file_name
+                  →   filesize()        →   file_size
+                  →   mime_content_type →   mime_type
+                  →   NOW()             →   uploaded_at (auto)
+
+==========================================
+VALIDATION RULES
+==========================================
+
+1. visit_id: REQUIRED
+   - Must exist in visits table
+   - Must belong to authenticated user (or user is admin)
+
+2. checklist_item_id: OPTIONAL
+   - Can be null
+   - If provided, should exist in checklist_points table (but not enforced in code)
+
+3. description: OPTIONAL
+   - Can be null
+   - Stored in caption column
+
+4. photo: REQUIRED
+   - File type: jpg, jpeg, png
+   - MIME type: image/jpeg, image/jpg, image/png
+   - Max size: 5MB (5242880 bytes)
+   - Upload error: UPLOAD_ERR_OK (0)
+
+==========================================
+CURRENT ISSUE DIAGNOSIS
+==========================================
+
+User reports: "upload photo body: kosong"
+
+This means backend $_POST and $_FILES are EMPTY.
+
+Possible causes (ranked by likelihood):
+
+1. **PHP Upload Limits Too Small**
+   - upload_max_filesize < photo size
+   - post_max_size < photo size
+   - Result: PHP silently drops data, $_POST and $_FILES empty
+
+2. **Content-Type Header Issue**
+   - Mobile not sending correct Content-Type: multipart/form-data
+   - Apache/Nginx stripping multipart boundary
+   - Result: PHP can't parse multipart data
+
+3. **Apache/Nginx Configuration**
+   - .htaccess rules interfering with multipart
+   - mod_security blocking upload
+   - Result: Request filtered before reaching PHP
+
+4. **Mobile App Issue**
+   - Not sending data correctly
+   - Request timeout before send complete
+   - Wrong HTTP method (GET instead of POST)
+
+==========================================
+NEXT DEBUGGING STEPS
+==========================================
+
+1. UPLOAD ENHANCED LOGGING VERSION
+   - Deploy visit-photo-upload.php with detailed logging
+   
+2. TEST FROM MOBILE
+   - Take/select photo
+   - Submit upload
+   - Check mobile LogCat for request details
+   
+3. CHECK BACKEND LOGS
+   - Look for "POST data count: X"
+   - Look for "FILES count: X"
+   - If both are 0, it's PHP upload limit or content-type issue
+   - If both have data, validation error
+   
+4. CHECK PHP SETTINGS
+   - cPanel → Software → Select PHP Version → Options
+   - Verify upload_max_filesize >= 10M
+   - Verify post_max_size >= 10M
+   
+5. TEST WITH SMALL IMAGE
+   - From mobile, take low-res photo (< 1MB)
+   - If works, it's file size limit
+   - If fails, it's content-type or config issue
+
+==========================================

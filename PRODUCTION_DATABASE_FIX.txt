@@ -1,0 +1,109 @@
+═══════════════════════════════════════════════════════════════
+TND SYSTEM - PRODUCTION DATABASE FIX - FINAL SOLUTION
+═══════════════════════════════════════════════════════════════
+
+🎯 CRITICAL DISCOVERY:
+----------------------
+Production database uses DIFFERENT table and column naming!
+
+Code Expected (DEV):          Production Reality:
+- visit_photos table    →     photos table ✅
+- checklist_item_id     →     checklist_point_id ✅
+- description column    →     notes column ✅
+- uploads/visit_photos/ →     uploads/photos/ ✅
+
+🔧 ROOT CAUSE:
+--------------
+Schema mismatch between development SQL export and actual production database.
+ALL code references were using wrong table/column names!
+
+✅ SOLUTION APPLIED:
+--------------------
+Updated 3 critical files to use production naming:
+
+1. classes/Visit.php
+   - savePhoto(): photos table + checklist_point_id
+   - saveChecklistResponse(): checklist_point_id
+   - Maps checklist_item_id (from mobile) → checklist_point_id (in DB)
+
+2. api/visit-photo-upload.php
+   - Upload directory: uploads/photos/
+   - Photo path: uploads/photos/{filename}
+
+3. create-upload-dirs.php
+   - Creates uploads/photos/ (not visit_photos/)
+
+📦 FILES TO UPLOAD (3 files):
+-----------------------------
+1. classes/Visit.php - Fixed table/column names
+2. api/visit-photo-upload.php - Fixed upload directory
+3. create-upload-dirs.php - Creates correct directory
+
+📋 NO MIGRATION NEEDED!
+-----------------------
+✅ Table 'photos' already exists (9 columns)
+✅ Column 'checklist_point_id' already exists
+✅ Table 'visit_checklist_responses' already exists
+✅ Column 'checklist_point_id' already exists
+
+Database is COMPLETE! Just code was using wrong names.
+
+🚀 DEPLOYMENT STEPS:
+--------------------
+
+STEP 1: Upload 3 Fixed Files
+  → classes/Visit.php
+  → api/visit-photo-upload.php  
+  → create-upload-dirs.php
+
+STEP 2: Create Upload Directory
+  → https://tndsystem.online/backend-web/create-upload-dirs.php
+  → Should create: uploads/photos/
+  → DELETE create-upload-dirs.php after
+
+STEP 3: Test from Mobile App
+  → Photo upload → Should work! (HTTP 200)
+  → Checklist response → Should work! (HTTP 200)
+
+🎯 EXPECTED RESULTS:
+--------------------
+Before Fix:
+  ❌ Table 'visit_photos' doesn't exist
+  ❌ Column 'checklist_item_id' not found
+  ❌ HTTP 500 errors
+
+After Fix:
+  ✅ Uses 'photos' table (exists!)
+  ✅ Uses 'checklist_point_id' (exists!)
+  ✅ HTTP 200 success
+  ✅ Data saved correctly
+
+📝 MAPPING REFERENCE:
+---------------------
+Mobile App sends:          PHP Code maps to:
+checklist_item_id    →    checklist_point_id
+description          →    notes
+visit_photos         →    photos
+
+This mapping is transparent to mobile app - NO changes needed!
+
+⚠️ IMPORTANT NOTES:
+-------------------
+1. NO database migration required
+2. NO mobile app changes required
+3. ONLY backend PHP files updated
+4. Upload directory path changed
+5. Delete check-database.php after verification
+
+✅ VERIFICATION:
+----------------
+Run check-database.php to confirm:
+  ✅ photos table: 9 columns
+  ✅ visit_checklist_responses: 7 columns  
+  ✅ Both have checklist_point_id column
+
+═══════════════════════════════════════════════════════════════
+Status: READY FOR DEPLOYMENT
+Date: November 2, 2025
+Version: Production Fix v2.0
+═══════════════════════════════════════════════════════════════

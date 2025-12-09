@@ -1,0 +1,83 @@
+==========================================
+QUICK DEPLOYMENT CHECKLIST
+Photo Upload Complete Fix
+==========================================
+
+FILES TO UPLOAD (3):
+□ api/visit-photo-upload.php (detailed logging)
+□ api/generate-recommendation-pdf.php (table name fix)
+□ api/finding-photos.php (table name fix)
+
+BACKUP FIRST:
+□ visit-photo-upload.php → .backup-20251103
+□ generate-recommendation-pdf.php → .backup-20251103
+□ finding-photos.php → .backup-20251103
+
+UPLOAD & SET PERMISSIONS:
+□ All files: 644 permissions
+
+VERIFY PHP SETTINGS (IMPORTANT!):
+□ cPanel → Software → Select PHP Version → Options
+□ upload_max_filesize = 10M (or higher)
+□ post_max_size = 10M (or higher)
+□ max_execution_time = 300
+□ memory_limit = 128M
+
+TEST FROM MOBILE:
+□ Start visit
+□ Take photo (try small photo first < 1MB)
+□ Upload photo
+□ Check success/error
+
+CHECK LOGS:
+□ cPanel → Metrics → Errors
+□ Or: error_log file
+□ Look for: "POST data count: X"
+□ Look for: "FILES count: X"
+
+IF LOGS SHOW "count: 0":
+→ Increase PHP upload limits (step above)
+→ Try smaller photo
+
+IF LOGS SHOW DATA:
+→ Check for SQL errors
+→ Verify table exists: photos
+→ Verify columns exist: visit_id, item_id, file_path, file_name, file_size, mime_type, caption
+
+EXPECTED SUCCESS LOG:
+✅ POST data count: 2 (or 3 with description)
+✅ FILES count: 1
+✅ Photo file found in $_FILES
+✅ File uploaded successfully
+✅ Photo saved to database with ID: X
+
+==========================================
+QUICK DIAGNOSIS:
+==========================================
+
+Error: "POST data count: 0, FILES count: 0"
+→ PHP upload limits too small
+→ Increase upload_max_filesize and post_max_size
+
+Error: "Table 'photos' doesn't exist"
+→ Should NOT happen (production has this table)
+→ Check database connection
+
+Error: "Column 'item_id' not found"
+→ Should NOT happen (verified in screenshot)
+→ Re-check database schema
+
+Error: "Failed to save photo record"
+→ Check Visit.php savePhoto() logs
+→ Look for SQL error details
+
+==========================================
+AFTER SUCCESSFUL UPLOAD:
+==========================================
+
+□ Test PDF generation (should include photos)
+□ Test finding photos view (should display photos)
+□ Verify photo appears in visit detail
+□ Verify photo file exists in uploads/photos/ directory
+
+==========================================

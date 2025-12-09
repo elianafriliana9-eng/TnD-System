@@ -1,0 +1,46 @@
+# ==================================
+# TnD System - Backend .htaccess
+# Minimal Safe Configuration
+# ==================================
+
+# Disable directory listing
+Options -Indexes
+
+# Set Default Index
+DirectoryIndex index.php
+
+# Enable Rewrite Engine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Fix Authorization Header (CRITICAL for Bearer Token)
+    RewriteCond %{HTTP:Authorization} ^(.+)$
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    
+    # Handle OPTIONS requests
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+</IfModule>
+
+# Pass Authorization header (CRITICAL!)
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+# CORS Headers
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Allow-Origin "https://tndsystem.online"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    Header always set Access-Control-Max-Age "3600"
+</IfModule>
+
+# Protect sensitive files
+<Files ".env">
+    Require all denied
+</Files>
+
+<FilesMatch "\.(log|sql|md|bat|sh)$">
+    Require all denied
+</FilesMatch>

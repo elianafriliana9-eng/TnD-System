@@ -1,0 +1,507 @@
+<!-- Training Management Content -->
+<div class="training-content">
+                <!-- Header -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2><i class="fas fa-graduation-cap"></i> Training Management</h2>
+                        <p class="text-muted">Kelola jadwal training, peserta, dan laporan</p>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Sessions
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalSessions">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Completed
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="completedSessions">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Total Participants
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalParticipants">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Average Score
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="avgScore">0.0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-star fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs mb-4" id="trainingTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button">
+                            <i class="fas fa-calendar-alt"></i> Jadwal Training
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="checklists-tab" data-bs-toggle="tab" data-bs-target="#checklists" type="button">
+                            <i class="fas fa-clipboard-list"></i> Form Checklist
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="instructors-tab" data-bs-toggle="tab" data-bs-target="#instructors" type="button">
+                            <i class="fas fa-chalkboard-teacher"></i> Data Instruktur
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="materials-tab" data-bs-toggle="tab" data-bs-target="#materials" type="button">
+                            <i class="fas fa-book"></i> Materi Training
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button">
+                            <i class="fas fa-file-alt"></i> Laporan Bulanan
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="trainingTabsContent">
+                    <!-- Jadwal Training Tab -->
+                    <div class="tab-pane fade show active" id="schedule" role="tabpanel">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Jadwal Training</h6>
+                                <button class="btn btn-primary btn-sm" onclick="showScheduleModal()">
+                                    <i class="fas fa-plus"></i> Tambah Jadwal
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="scheduleTable">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Tanggal</th>
+                                                <th>Outlet</th>
+                                                <th>Trainer</th>
+                                                <th>Checklist</th>
+                                                <th>Status</th>
+                                                <th>Peserta</th>
+                                                <th>Score</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scheduleTableBody">
+                                            <tr>
+                                                <td colspan="9" class="text-center">Loading...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Checklist Tab -->
+                    <div class="tab-pane fade" id="checklists" role="tabpanel">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Form Checklist InHouse Training</h6>
+                                <button class="btn btn-primary btn-sm" onclick="showChecklistModal()">
+                                    <i class="fas fa-plus"></i> Tambah Checklist
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="checklistsContainer">
+                                    <!-- Checklists will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Instruktur Tab -->
+                    <div class="tab-pane fade" id="instructors" role="tabpanel">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Data Instruktur Training</h6>
+                                <button class="btn btn-primary btn-sm" onclick="showAddInstructorModal()">
+                                    <i class="fas fa-plus"></i> Tambah Instruktur
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="instructorsTable">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nama</th>
+                                                <th>Email</th>
+                                                <th>Phone</th>
+                                                <th>Spesialisasi</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="instructorsTableBody">
+                                            <tr>
+                                                <td colspan="7" class="text-center">Loading...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Materi Training Tab -->
+                    <div class="tab-pane fade" id="materials" role="tabpanel">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary">Materi Training</h6>
+                                <button class="btn btn-primary btn-sm" onclick="showUploadMaterialModal()">
+                                    <i class="fas fa-upload"></i> Upload Materi
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="materialsContainer">
+                                    <div class="col-12 text-center">
+                                        <p class="text-muted">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Laporan Bulanan Tab -->
+                    <div class="tab-pane fade" id="reports" role="tabpanel">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Laporan Bulanan Training</h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Filter -->
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <label>Bulan</label>
+                                        <select class="form-control" id="reportMonth">
+                                            <option value="1">Januari</option>
+                                            <option value="2">Februari</option>
+                                            <option value="3">Maret</option>
+                                            <option value="4">April</option>
+                                            <option value="5">Mei</option>
+                                            <option value="6">Juni</option>
+                                            <option value="7">Juli</option>
+                                            <option value="8">Agustus</option>
+                                            <option value="9">September</option>
+                                            <option value="10">Oktober</option>
+                                            <option value="11">November</option>
+                                            <option value="12">Desember</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Tahun</label>
+                                        <select class="form-control" id="reportYear">
+                                            <option value="2025">2025</option>
+                                            <option value="2024">2024</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>&nbsp;</label>
+                                        <button class="btn btn-primary d-block" onclick="generateReport()">
+                                            <i class="fas fa-search"></i> Tampilkan
+                                        </button>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>&nbsp;</label>
+                                        <button class="btn btn-success d-block" onclick="exportReportPDF()">
+                                            <i class="fas fa-file-pdf"></i> Export PDF
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Report Content -->
+                                <div id="reportContent">
+                                    <p class="text-muted">Pilih bulan dan tahun, lalu klik Tampilkan</p>
+                                </div>
+
+                                <!-- Charts -->
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <canvas id="sessionsChart"></canvas>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <canvas id="scoresChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Jadwal Training</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Outlet *</label>
+                                <select class="form-control" id="schedule_outlet_id" required>
+                                    <option value="">Pilih Outlet</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Trainer *</label>
+                                <select class="form-control" id="schedule_trainer_id" required>
+                                    <option value="">Pilih Trainer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Checklist *</label>
+                                <select class="form-control" id="schedule_checklist_id" required>
+                                    <option value="">Pilih Checklist</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Tanggal *</label>
+                                <input type="date" class="form-control" id="schedule_date" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Waktu Mulai</label>
+                                <input type="time" class="form-control" id="schedule_start_time">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Waktu Selesai</label>
+                                <input type="time" class="form-control" id="schedule_end_time">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label>Catatan</label>
+                            <textarea class="form-control" id="schedule_notes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSchedule()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checklist Modal -->
+    <div class="modal fade" id="checklistModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Form Checklist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="checklistForm">
+                        <div class="mb-3">
+                            <label>Nama Checklist *</label>
+                            <input type="text" class="form-control" id="checklist_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Deskripsi</label>
+                            <textarea class="form-control" id="checklist_description" rows="2"></textarea>
+                        </div>
+                        
+                        <h6 class="mt-4 mb-3">Kategori & Poin Evaluasi</h6>
+                        <div id="categoriesContainer">
+                            <!-- Categories will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addCategory()">
+                            <i class="fas fa-plus"></i> Tambah Kategori
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveChecklist()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructor Modal -->
+    <div class="modal fade" id="instructorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Instruktur</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="instructorForm">
+                        <input type="hidden" id="instructor_id">
+                        <div class="mb-3">
+                            <label>Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="instructor_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Email *</label>
+                            <input type="email" class="form-control" id="instructor_email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Password *</label>
+                            <input type="password" class="form-control" id="instructor_password" required>
+                            <small class="text-muted">Kosongkan jika tidak ingin mengubah password</small>
+                        </div>
+                        <div class="mb-3">
+                            <label>Phone</label>
+                            <input type="text" class="form-control" id="instructor_phone">
+                        </div>
+                        <div class="mb-3">
+                            <label>Spesialisasi</label>
+                            <input type="text" class="form-control" id="instructor_specialization" placeholder="Contoh: Food & Beverage, Customer Service">
+                        </div>
+                        <div class="mb-3">
+                            <label>Status</label>
+                            <select class="form-control" id="instructor_status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveInstructor()">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Material Modal -->
+    <div class="modal fade" id="materialModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Materi Training</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="materialForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label>Judul Materi *</label>
+                            <input type="text" class="form-control" id="material_title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Deskripsi</label>
+                            <textarea class="form-control" id="material_description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Kategori</label>
+                            <select class="form-control" id="material_category">
+                                <option value="hospitality">Hospitality</option>
+                                <option value="food_beverage">Food & Beverage</option>
+                                <option value="hygiene">Hygiene & Sanitasi</option>
+                                <option value="customer_service">Customer Service</option>
+                                <option value="product_knowledge">Product Knowledge</option>
+                                <option value="other">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>File Materi (PDF atau PPTX) *</label>
+                            <input type="file" class="form-control" id="material_file" accept=".pdf,.pptx,.ppt" required>
+                            <small class="text-muted">Maksimal 10MB. Format: PDF, PPT, PPTX</small>
+                        </div>
+                        <div class="mb-3">
+                            <label>Thumbnail (Opsional)</label>
+                            <input type="file" class="form-control" id="material_thumbnail" accept="image/*">
+                            <small class="text-muted">Gambar preview materi (JPG, PNG)</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="uploadMaterial()">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Material Viewer Modal -->
+    <div class="modal fade" id="materialViewerModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewerTitle">Materi Training</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="height: 80vh; overflow: hidden;">
+                    <iframe id="materialViewer" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <a id="downloadMaterialBtn" class="btn btn-primary" download>
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

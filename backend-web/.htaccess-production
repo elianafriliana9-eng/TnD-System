@@ -1,0 +1,46 @@
+# ==================================
+# TnD System - Backend .htaccess (Production)
+# Minimal & Safe Configuration for cPanel
+# ==================================
+
+# Disable directory listing
+Options -Indexes
+
+# Set Default Index
+DirectoryIndex index.php
+
+# Enable Rewrite Engine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>
+
+# Protect .env file
+<Files ".env">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Protect sensitive files
+<FilesMatch "\.(log|sql|md|bat|sh|git)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# PHP Error Settings
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log logs/error.log
+    php_value upload_max_filesize 20M
+    php_value post_max_size 25M
+    php_value max_execution_time 300
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log logs/error.log
+    php_value upload_max_filesize 20M
+    php_value post_max_size 25M
+    php_value max_execution_time 300
+</IfModule>

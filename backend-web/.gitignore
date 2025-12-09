@@ -1,0 +1,49 @@
+# Environment Configuration
+.env
+.env.local
+.env.production
+
+# Upload Directories (uploaded files)
+uploads/
+visit_photos/
+training/photos/
+profile_photos/
+
+# Log Files
+logs/
+*.log
+
+# Rate Limiting Data
+ratelimit/
+
+# Temporary Files
+*.tmp
+*.temp
+*.cache
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup Files
+*.bak
+*.backup
+*.sql.gz
+
+# Test Files (should be deleted but just in case)
+test-*.php
+debug-*.php
+simulate-*.php
+
+# Database Dumps (don't commit production data)
+*.sql
+!database/schema.sql
+!database/create_db_user.sql

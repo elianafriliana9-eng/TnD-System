@@ -1,0 +1,216 @@
+==========================================
+COMPLETE TABLE MAPPING FIX
+==========================================
+
+TOTAL FILES FIXED: 7
+
+FILES WITH PHOTOS TABLE QUERIES:
+1. ✅ classes/Visit.php
+   - getVisitDetails(): item_id AS checklist_item_id, file_path AS photo_path
+   - savePhoto(): Uses photos table with correct columns
+
+2. ✅ api/visit-photo-upload.php
+   - Added detailed logging
+   - Calls Visit::savePhoto()
+
+3. ✅ api/visit-detail.php
+   - Query: item_id AS checklist_item_id, file_path AS photo_path
+
+4. ✅ api/visit-responses.php
+   - Query: photos.file_path, JOIN ON p.item_id = vcr.checklist_point_id
+
+5. ✅ api/improvement-recommendations.php
+   - Query: item_id AS checklist_item_id, file_path AS photo_path
+
+6. ✅ api/generate-recommendation-pdf.php
+   - Query: item_id AS checklist_item_id, file_path AS photo_path
+
+7. ✅ api/finding-photos.php
+   - Query: file_path AS photo_path, JOIN ON p.item_id = cp.id
+
+==========================================
+COMPLETE COLUMN MAPPING
+==========================================
+
+DEVELOPMENT (Laragon)         PRODUCTION (cPanel)
+-------------------------     -------------------
+Table: visit_photos       →   Table: photos
+checklist_item_id         →   item_id
+photo_path                →   file_path
+uploaded_at               →   uploaded_at
+visit_id                  →   visit_id
+description               →   caption
+(N/A)                     →   file_name
+(N/A)                     →   file_size
+(N/A)                     →   mime_type
+
+MOBILE ↔ BACKEND MAPPING:
+-------------------------
+Mobile sends:
+- visit_id (int)
+- checklist_item_id (int) → Backend maps to item_id
+- description (string)    → Backend maps to caption
+- photo (File)            → Backend saves to file_path
+
+Backend returns (AS aliases):
+- item_id AS checklist_item_id
+- file_path AS photo_path
+- caption AS description
+
+Mobile receives & parses:
+- checklist_item_id
+- photo_path
+- description
+
+==========================================
+QUERY PATTERN USED (CONSISTENT):
+==========================================
+
+SELECT:
+  p.item_id AS checklist_item_id,
+  p.file_path AS photo_path,
+  p.caption AS description,
+  p.file_name,
+  p.file_size,
+  p.mime_type,
+  p.uploaded_at
+FROM photos p
+WHERE p.visit_id = ?
+
+JOIN:
+LEFT JOIN photos p ON p.visit_id = vcr.visit_id 
+                  AND p.item_id = vcr.checklist_point_id
+
+INSERT:
+INSERT INTO photos 
+  (visit_id, item_id, file_path, file_name, file_size, mime_type, caption)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+
+==========================================
+VERIFICATION CHECKLIST
+==========================================
+
+✅ No more queries to visit_photos (except migrations)
+✅ No more references to p.checklist_point_id in photos
+✅ No more references to p.photo_path in photos
+✅ All queries use item_id with AS checklist_item_id alias
+✅ All queries use file_path with AS photo_path alias
+✅ All JOINs use correct column: p.item_id
+✅ All INSERT use correct columns: item_id, file_path, caption
+✅ Mobile models match backend response format
+✅ All PHP syntax validated (7 files, all OK)
+
+==========================================
+DEPLOYMENT FILES (7 total)
+==========================================
+
+Core Model:
+□ classes/Visit.php
+
+API Endpoints:
+□ api/visit-photo-upload.php (detailed logging)
+□ api/visit-detail.php
+□ api/visit-responses.php
+□ api/improvement-recommendations.php
+□ api/generate-recommendation-pdf.php
+□ api/finding-photos.php
+
+BACKUP BEFORE UPLOAD:
+All 7 files → .backup-20251103
+
+UPLOAD & VERIFY:
+- Permissions: 644
+- Check file sizes
+- Check timestamps
+
+==========================================
+EXPECTED RESULTS AFTER DEPLOYMENT
+==========================================
+
+BEFORE FIX:
+❌ Photo upload: Error 500 (Table 'visit_photos' doesn't exist)
+❌ Visit detail: No photos shown (wrong column names)
+❌ PDF generation: Error (table not found)
+❌ Finding photos: Error (table not found)
+❌ Visit responses: No photos (wrong table/columns)
+❌ Recommendations: No photos (wrong table/columns)
+
+AFTER FIX:
+✅ Photo upload: Works with detailed logging
+✅ Visit detail: Shows photos correctly
+✅ PDF generation: Includes photos
+✅ Finding photos: Displays photos
+✅ Visit responses: Shows photos with responses
+✅ Recommendations: Shows photos with findings
+
+==========================================
+TESTING SEQUENCE
+==========================================
+
+1. PHOTO UPLOAD TEST:
+   - Start visit
+   - Take photo for checklist item
+   - Upload photo
+   - Check backend logs for success
+   - Verify: POST data count > 0, FILES count > 0
+   - Verify: "Photo saved to database with ID: X"
+
+2. VISIT DETAIL TEST:
+   - View visit detail
+   - Should show uploaded photos
+   - Photos grouped by checklist item
+
+3. PDF GENERATION TEST:
+   - Generate recommendation PDF
+   - Should include photos in findings section
+
+4. FINDING PHOTOS TEST:
+   - View finding photos from report
+   - Should display photos for specific findings
+
+5. VISIT RESPONSES TEST:
+   - View visit responses
+   - Should show photos linked to responses
+
+6. DATABASE VERIFICATION:
+   Query: SELECT * FROM photos WHERE visit_id = ?
+   Should return rows with:
+   - item_id (not checklist_item_id)
+   - file_path (not photo_path)
+   - caption (not description)
+   - file_name, file_size, mime_type
+
+==========================================
+ROOT CAUSE SUMMARY
+==========================================
+
+PROBLEM: 
+Development environment (Laragon) uses different database 
+schema than Production (cPanel).
+
+SCOPE:
+- Table name: visit_photos vs photos
+- Column names: checklist_item_id vs item_id, photo_path vs file_path
+- Additional columns in production: file_name, file_size, mime_type
+
+IMPACT:
+All photo-related features broken in production:
+- Upload fails (table not found)
+- Display fails (column not found)
+- PDF generation fails (table not found)
+
+SOLUTION:
+- Update all 7 files to use production schema
+- Use column aliases (AS) for backward compatibility
+- Map mobile field names to database column names
+- Consistent naming across all endpoints
+
+PREVENTION:
+- Always check production schema before deployment
+- Document schema differences
+- Use migration scripts to sync dev/prod
+- Test all features on production-like environment
+
+==========================================
+STATUS: READY FOR DEPLOYMENT ✅
+==========================================

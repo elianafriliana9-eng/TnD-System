@@ -1,207 +1,503 @@
-# TND System - Web Super Admin
+# 🚀 TND System - Training & Development Management System
 
-Sistem manajemen audit TND (Visit System) yang dibangun menggunakan PHP Native tanpa framework, dengan Laragon sebagai database client.
+> **Modern Training & Development Management Platform** - Sistem manajemen pelatihan dan pengembangan karyawan yang komprehensif dengan interface modern dan mobile app support.
 
-## Fitur Utama
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg)
+![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B.svg)
+![License](https://img.shields.io/badge/license-Proprietary-red.svg)
 
-- **Manajemen User**: Sistem autentikasi dan otorisasi berbasis role
-- **Manajemen Outlet**: Kelola data outlet/toko
-- **Checklist Management**: Buat dan kelola kategori serta poin checklist
-- **Audit System**: Lakukan audit dengan checklist yang sudah dibuat
-- **Reporting**: Laporan dan analisis hasil audit
-- **Web Admin Panel**: Interface web untuk super admin
+## 📋 Overview
 
-## Struktur Folder
+TND System adalah platform komprehensif untuk manajemen Training & Development yang terdiri dari:
+- 🌐 **Web Admin Panel** - Interface modern untuk super admin dengan dashboard analytics
+- 📱 **Mobile App (Flutter)** - Aplikasi mobile untuk trainer dan crew melakukan daily training
+- 🔌 **REST API Backend** - Backend API dengan PHP native untuk komunikasi antar platform
+- 📊 **PDF Generation** - Generate training reports dengan digital signature
+
+## ✨ Fitur Utama
+
+### Web Admin Panel
+- **Dashboard Analytics** - Real-time statistics dengan modern card design
+- **User Management** - Kelola user dengan role-based access control
+- **Outlet Management** - Manajemen data outlet/toko
+- **Checklist Management** - Setup kategori dan item checklist dengan drag & drop
+- **Training Reports** - View dan export laporan training
+- **Session Timeout** - Auto logout setelah 30 menit inactivity
+- **Modern UI/UX** - Clean design dengan gradient colors dan smooth animations
+
+### Mobile App (Flutter)
+- **Daily Training** - Catat training harian per crew dengan rating system (BS/B/C/K)
+- **Digital Signature** - Tanda tangan digital untuk trainer dan crew leader
+- **Photo Upload** - Upload foto training dengan compression
+- **PDF Generation** - Generate training report dalam format PDF
+- **Offline Support** - Bekerja offline dan sync saat online
+- **Training History** - Riwayat training lengkap dengan filter
+
+### Backend API
+- **RESTful API** - Clean API architecture
+- **JWT Authentication** - Secure authentication dengan token
+- **Rate Limiting** - Prevent brute force attacks (5 req/min)
+- **File Upload** - Support untuk foto dan dokumen
+- **Database Migration** - Easy database setup dan updates
+
+## 📁 Struktur Project
 
 ```
 tnd_system/
-├── backend-web/
-│   ├── api/                    # REST API endpoints
-│   │   ├── index.php          # Main API router
-│   │   ├── Router.php         # API router class
-│   │   ├── AuthController.php # Authentication endpoints
-│   │   └── UserController.php # User management endpoints
-│   ├── classes/               # Model classes
-│   │   ├── Database.php       # Database connection
-│   │   ├── BaseModel.php      # Base model class
-│   │   ├── User.php           # User model
-│   │   ├── Outlet.php         # Outlet model
-│   │   ├── Audit.php          # Audit model
-│   │   ├── AuditResult.php    # Audit result model
-│   │   ├── ChecklistCategory.php
-│   │   └── ChecklistPoint.php
-│   ├── config/                # Konfigurasi
-│   │   └── database.php       # Database config
-│   ├── utils/                 # Utility classes
-│   │   ├── Response.php       # API response helper
-│   │   ├── Request.php        # Request helper
-│   │   └── Auth.php           # Authentication helper
-│   └── database_schema.sql    # Database schema
-├── frontend-web/              # Web admin interface
-│   ├── index.html            # Main admin page
-│   ├── login.html            # Login page
-│   └── assets/
-│       ├── css/
-│       │   └── admin.css     # Admin styles
-│       └── js/
-│           ├── api.js        # API helper functions
-│           ├── auth.js       # Authentication functions
-│           ├── login.js      # Login functionality
-│           ├── dashboard.js  # Dashboard functions
-│           ├── users.js      # User management
-│           └── admin.js      # Main admin functions
-└── tnd_mobile/               # Flutter mobile app (future)
+├── 📂 backend-web/                 # PHP Backend API
+│   ├── 📂 api/                     # REST API Endpoints
+│   │   ├── login.php               # Authentication
+│   │   ├── training/               # Training endpoints
+│   │   ├── users.php               # User management
+│   │   ├── outlets.php             # Outlet management
+│   │   ├── checklist-*.php         # Checklist management
+│   │   └── dashboard-stats.php     # Dashboard statistics
+│   ├── 📂 classes/                 # Model Classes
+│   │   ├── Database.php            # Database connection
+│   │   ├── User.php                # User model
+│   │   ├── Outlet.php              # Outlet model
+│   │   └── Training.php            # Training model
+│   ├── 📂 config/                  # Configuration
+│   │   └── database.php            # Database config
+│   ├── 📂 utils/                   # Utility Classes
+│   │   ├── Response.php            # API response helper
+│   │   ├── Security.php            # Security utilities
+│   │   └── RateLimiter.php         # Rate limiting
+│   └── 📂 uploads/                 # Upload directory
+│       └── training_photos/        # Training photos
+│
+├── 📂 frontend-web/                # Web Admin Interface
+│   ├── index.html                  # Main dashboard
+│   ├── login.html                  # Login page (modern design)
+│   └── 📂 assets/
+│       ├── 📂 css/
+│       │   └── admin.css           # Modern admin styles
+│       ├── 📂 js/
+│       │   ├── api.js              # API configuration
+│       │   ├── auth.js             # Session & auth management
+│       │   ├── dashboard.js        # Dashboard functions
+│       │   ├── users.js            # User CRUD
+│       │   ├── admin.js            # Main admin functions
+│       │   └── outlets.js          # Outlet management
+│       └── 📂 img/
+│           └── logo T&D 2-02.png   # Company logo
+│
+└── 📂 tnd_mobile_flutter/          # Flutter Mobile App
+    ├── 📂 lib/
+    │   ├── 📂 models/              # Data models
+    │   ├── 📂 services/            # API services
+    │   │   ├── api_service.dart
+    │   │   ├── training_service.dart
+    │   │   └── training_pdf_service.dart
+    │   ├── 📂 screens/             # App screens
+    │   │   ├── 📂 training/        # Training module
+    │   │   │   ├── daily_training_form.dart
+    │   │   │   ├── training_history.dart
+    │   │   │   └── digital_signature_screen.dart
+    │   │   └── home_screen.dart
+    │   └── main.dart
+    ├── pubspec.yaml                # Flutter dependencies
+    └── 📂 android/                 # Android config
 ```
 
-## Setup dan Instalasi
+## 🚀 Setup dan Instalasi
 
-### Prasyarat
-- **Laragon** (Latest version) dengan:
+### 🔧 Prasyarat
+
+**Local Development (Laragon):**
+- Laragon Full (Latest version)
   - PHP 7.4+ atau PHP 8.x
   - MySQL 5.7+ atau MySQL 8.0
   - Apache Web Server
-- Web browser modern (Chrome, Firefox, Edge, Safari)
+- Web browser modern (Chrome, Firefox, Edge)
 
-### Langkah Instalasi untuk Laragon
+**Production Server:**
+- PHP 7.4+ dengan extensions: PDO, GD, JSON
+- MySQL 5.7+ atau MySQL 8.0
+- Apache/Nginx Web Server
+- SSL Certificate (HTTPS)
+- Min 512MB RAM
 
-1. **Pastikan Laragon berjalan**
-   - Start Laragon
-   - Pastikan Apache dan MySQL services running (hijau)
+### 📦 Instalasi Local (Laragon)
 
-2. **Copy project ke folder Laragon**
-   ```
-   C:\laragon\www\tnd_system\
-   ```
+#### 1️⃣ Setup Project
+```bash
+# Clone repository
+git clone https://github.com/elianafriliana9-eng/TnD-System.git
 
-3. **Setup Database Otomatis**
-   - Jalankan file: `setup-database.bat`
-   - Script akan membuka phpMyAdmin dan memberikan instruksi
-   - Import file `backend-web/database_schema.sql`
-   - Database `tnd_system` akan dibuat dengan data sample
+# Copy ke folder Laragon
+C:\laragon\www\tnd_system\
+```
 
-4. **Verifikasi Konfigurasi**
-   - File `backend-web/config/database.php` sudah dikonfigurasi untuk Laragon
-   - Host: 127.0.0.1, Port: 3306, User: root, Password: (kosong)
+#### 2️⃣ Setup Database
+```bash
+# Jalankan Laragon
+# Start All Services (Apache + MySQL)
 
-5. **Akses aplikasi**
-   - Web Admin: `http://localhost/tnd_system/tnd_system/frontend-web/login.html`
-   - API: `http://localhost/tnd_system/tnd_system/backend-web/api/`
-   - phpMyAdmin: `http://localhost/phpmyadmin` (via Laragon)
+# Import database
+1. Buka http://localhost/phpmyadmin
+2. Create database: tnd_system
+3. Import file: backend-web/database_schema.sql
+```
 
-### Login Default
-- **Email**: admin@tnd-system.com
-- **Password**: password
+#### 3️⃣ Konfigurasi
+File `backend-web/config/database.php` sudah dikonfigurasi untuk Laragon:
+```php
+$host = '127.0.0.1';
+$port = '3306';
+$dbname = 'tnd_system';
+$username = 'root';
+$password = '';  // Kosong untuk Laragon
+```
 
-## API Endpoints
+#### 4️⃣ Akses Aplikasi
+- 🌐 Web Admin: `http://localhost/tnd_system/frontend-web/login.html`
+- 🔌 API Endpoint: `http://localhost/tnd_system/backend-web/api/`
+- 📊 phpMyAdmin: `http://localhost/phpmyadmin`
+
+### 🌍 Instalasi Production Server
+
+#### 1️⃣ Upload Files
+```bash
+# Upload via FTP/SFTP ke hosting
+/public_html/
+├── backend-web/
+└── frontend-web/
+```
+
+#### 2️⃣ Update API Configuration
+Edit `frontend-web/assets/js/api.js`:
+```javascript
+const API_BASE_URL = 'https://yourdomain.com/backend-web/api';
+```
+
+#### 3️⃣ Setup Database
+```sql
+CREATE DATABASE tnd_system;
+-- Import database_schema.sql via phpMyAdmin
+```
+
+#### 4️⃣ Update Database Config
+Edit `backend-web/config/database.php`:
+```php
+$host = 'localhost';
+$dbname = 'your_db_name';
+$username = 'your_db_user';
+$password = 'your_db_password';
+```
+
+#### 5️⃣ Set Permissions
+```bash
+chmod 755 backend-web/uploads/
+chmod 755 backend-web/uploads/training_photos/
+```
+
+### 🔐 Login Default
+
+**Super Admin:**
+- Email: `admin@tnd-system.com`
+- Password: `password`
+
+**Test User:**
+- Email: `user@tnd-system.com`
+- Password: `password`
+
+> ⚠️ **Penting**: Ganti password default setelah login pertama!
+
+## 🔌 API Documentation
+
+### Base URL
+- **Local**: `http://localhost/tnd_system/backend-web/api`
+- **Production**: `https://tndsystem.online/backend-web/api`
 
 ### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Get current user info
-- `POST /api/auth/change-password` - Change password
-
-### Users
-- `GET /api/users` - Get all users
-- `GET /api/users/{id}` - Get user by ID
-- `POST /api/users` - Create new user
-- `PUT /api/users/{id}` - Update user
-- `DELETE /api/users/{id}` - Delete user
-- `GET /api/users/role/{role}` - Get users by role
-
-### Health Check
-- `GET /api/health` - API health check
-
-## Database Schema
-
-### Tables
-1. **users** - Sistem user dengan role-based access
-2. **outlets** - Data outlet/toko
-3. **checklist_categories** - Kategori checklist
-4. **checklist_points** - Poin-poin checklist
-5. **audits** - Data audit
-6. **audit_results** - Hasil detail audit per poin
-
-### User Roles
-- **super_admin**: Akses penuh ke sistem
-- **admin**: Manajemen user dan outlet
-- **supervisor**: Monitoring audit
-- **auditor**: Melakukan audit
-
-## Fitur Web Admin
-
-### Dashboard
-- Statistik sistem
-- Recent activities
-- Quick actions
+| Method | Endpoint | Description | Rate Limit |
+|--------|----------|-------------|------------|
+| POST | `/login.php` | User login | 5 req/min |
+| POST | `/logout.php` | User logout | - |
+| GET | `/me.php` | Get current user | - |
 
 ### User Management
-- Tambah/edit/hapus user
-- Manajemen role
-- Status user (active/inactive)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/users.php` | Get all users |
+| GET | `/users.php?id={id}` | Get user by ID |
+| POST | `/users-create.php` | Create new user |
+| PUT | `/user-update.php?id={id}` | Update user |
+| DELETE | `/user-delete.php?id={id}` | Delete user |
+| POST | `/user-change-password.php` | Change user password (5 req/min) |
+
+### Training Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/training/list.php` | Get training sessions |
+| GET | `/training/detail.php?id={id}` | Get training detail |
+| POST | `/training/create.php` | Create training session |
+| POST | `/training/upload-photo.php` | Upload training photo |
+| GET | `/training/stats.php` | Get training statistics |
 
 ### Outlet Management
-- Data outlet lengkap
-- Lokasi dan kontak
-- Status outlet
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/outlets.php` | Get all outlets |
+| GET | `/outlets.php?id={id}` | Get outlet by ID |
+| POST | `/outlets.php` | Create outlet |
+| PUT | `/outlets.php?id={id}` | Update outlet |
+| DELETE | `/outlets.php?id={id}` | Delete outlet |
 
-### Checklist Setup
-- Kategori checklist
-- Poin-poin checklist
-- Scoring system
+### Checklist Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/divisions.php` | Get divisions with categories |
+| POST | `/checklist-categories.php` | Create category |
+| PUT | `/checklist-categories.php?id={id}` | Update category |
+| DELETE | `/checklist-categories.php?id={id}` | Delete category |
+| POST | `/checklist-points.php` | Create checklist point |
+| PUT | `/checklist-points.php?id={id}` | Update point |
+| DELETE | `/checklist-points.php?id={id}` | Delete point |
 
-### Audit System
-- Schedule audit
-- Conduct audit
-- Review results
-
-### Reports
-- Performance charts
-- Score distribution
-- Export functionality
-
-## Security Features
-
-- Password hashing dengan bcrypt
-- Session management
-- Role-based access control
-- CSRF protection (headers)
-- Input validation
-- SQL injection prevention (PDO)
-
-## Development Notes
-
-### API Response Format
+### Response Format
+**Success:**
 ```json
 {
   "success": true,
-  "message": "Success message",
+  "message": "Operation successful",
   "data": {...}
 }
 ```
 
-### Error Response Format
+**Error:**
 ```json
 {
   "success": false,
-  "message": "Error message",
+  "message": "Error description",
   "errors": {...}
 }
 ```
 
-### Adding New Features
-1. Buat model class di `backend-web/classes/`
-2. Tambah API controller di `backend-web/api/`
-3. Update router di `backend-web/api/index.php`
-4. Buat frontend JavaScript di `frontend-web/assets/js/`
+## 🗄️ Database Schema
 
-## Browser Support
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
+### Core Tables
 
-## License
-Proprietary - TND System
+| Table | Description | Key Fields |
+|-------|-------------|------------|
+| `users` | User accounts & authentication | id, email, name, role, password_hash |
+| `outlets` | Store/outlet data | id, name, address, latitude, longitude |
+| `divisions` | Training divisions | id, name, description |
+| `checklist_categories` | Checklist categories | id, division_id, name, description |
+| `checklist_points` | Checklist items | id, category_id, question |
+| `training_sessions` | Training records | id, trainer_id, outlet_id, date, status |
+| `training_participants` | Training crew data | id, session_id, crew_name, rating |
+| `training_photos` | Training photos | id, session_id, photo_path |
 
-## Contact
-Developer: TND System Team# TnD-System
+### User Roles & Permissions
+
+| Role | Web Access | Mobile Access | Permissions |
+|------|------------|---------------|-------------|
+| `super_admin` | ✅ Full | ✅ Full | All operations |
+| `admin` | ✅ Limited | ✅ Full | User & outlet management |
+| `supervisor` | ✅ View | ✅ Full | View reports, conduct training |
+| `trainer` | ❌ No | ✅ Full | Conduct training only |
+| `crew` | ❌ No | ✅ Limited | View own training |
+
+### Training Rating System
+- **BS** (Belum Selesai) - Not completed
+- **B** (Baik) - Good
+- **C** (Cukup) - Fair  
+- **K** (Kurang) - Poor
+
+## 🎨 Features Breakdown
+
+### 🌐 Web Admin Panel
+
+#### Modern Dashboard
+- 📊 Real-time statistics cards with gradient design
+- 📈 Daily visits trend chart (Last 7 days)
+- 🕐 Recent activities timeline
+- ⚡ Quick action cards for common tasks
+- 🟢 Session indicator with timeout warning
+
+#### User Management
+- ➕ Create, edit, delete users
+- 🎭 Role-based access control
+- 📧 Email validation
+- 🔒 Password management
+- 📊 User activity tracking
+
+#### Outlet Management
+- 🏪 Complete outlet data
+- 📍 Location with coordinates
+- 📞 Contact information
+- ✅ Active/inactive status
+
+#### Checklist Management
+- 📋 Division-based categories
+- 🎨 Color-coded category cards
+- ➕ Drag & drop item management
+- 📝 Rich text descriptions
+- 🔢 Numbering system
+
+#### Modern UI Features
+- 🎨 Gradient color scheme
+- ✨ Smooth animations & transitions
+- 📱 Fully responsive design
+- 🌙 Clean minimalist interface
+- 🔄 Loading states & skeletons
+
+### 📱 Mobile App (Flutter)
+
+#### Daily Training Module
+- 📝 Per-crew training form
+- ⭐ 4-level rating system (BS/B/C/K)
+- 📸 Photo upload with compression
+- ✍️ Digital signature capture
+- 📄 PDF generation with logo
+
+#### Training Management
+- 📅 Training history with filters
+- 🔍 Search functionality
+- 📊 Training statistics
+- 🔄 Sync status indicator
+- 📥 Offline mode support
+
+#### PDF Features
+- 📄 Professional training report
+- 🏢 Company logo & branding
+- ✍️ Digital signatures (trainer & crew leader)
+- 📸 Embedded training photos
+- 📋 Complete crew listing with ratings
+
+## 🔒 Security Features
+
+### Authentication & Authorization
+- 🔐 Password hashing (bcrypt)
+- 🎫 JWT token-based auth
+- ⏱️ Session timeout (30 minutes)
+- 🚫 Rate limiting (5 req/min on sensitive endpoints)
+- 👥 Role-based access control
+
+### Data Protection
+- 🛡️ SQL injection prevention (PDO prepared statements)
+- ✅ Input validation & sanitization
+- 🔒 HTTPS enforcement (production)
+- 📝 Activity logging
+- 🗑️ Secure file deletion
+
+### Session Management
+- ⏰ Auto logout after 30 min inactivity
+- 🎯 Activity tracking (mouse, keyboard, scroll)
+- ⚠️ Warning 5 minutes before timeout
+- 🟢 Real-time session indicator
+- 🔄 Automatic session refresh on activity
+
+## 🛠️ Tech Stack
+
+### Backend
+- **PHP 7.4+** - Core backend language
+- **MySQL 8.0** - Database
+- **PDO** - Database abstraction
+- **JWT** - Authentication tokens
+- **GD Library** - Image processing
+
+### Frontend Web
+- **HTML5** - Structure
+- **CSS3** - Styling with gradients & animations
+- **JavaScript (ES6+)** - Interactivity
+- **Bootstrap 5.3** - UI framework
+- **SweetAlert2** - Modern alerts
+- **Chart.js** - Data visualization
+- **Font Awesome 6** - Icons
+
+### Mobile App
+- **Flutter 3.x** - Mobile framework
+- **Dart** - Programming language
+- **http** - API communication
+- **pdf** - PDF generation
+- **image_picker** - Photo capture
+- **signature** - Digital signature
+- **path_provider** - File storage
+
+## 📱 Browser & Device Support
+
+### Web Admin
+- ✅ Chrome 80+
+- ✅ Firefox 75+
+- ✅ Safari 13+
+- ✅ Edge 80+
+- ✅ Responsive design (mobile, tablet, desktop)
+
+### Mobile App
+- ✅ Android 6.0+ (API 23+)
+- ✅ iOS 11+
+- ✅ Tablet support
+- ✅ Both portrait & landscape
+
+## 🎯 Roadmap & Future Features
+
+### Phase 1 ✅ (Completed)
+- [x] Web admin panel
+- [x] User & outlet management
+- [x] Checklist system
+- [x] Basic reporting
+
+### Phase 2 ✅ (Completed)
+- [x] Mobile app (Flutter)
+- [x] Daily training module
+- [x] Digital signature
+- [x] PDF generation
+- [x] Photo upload
+
+### Phase 3 🚧 (Current)
+- [x] Modern UI redesign
+- [x] Session timeout
+- [x] Rate limiting
+- [ ] Training dashboard analytics
+- [ ] Advanced filtering
+
+### Phase 4 📋 (Planned)
+- [ ] Real-time notifications
+- [ ] Email notifications
+- [ ] Training scheduler
+- [ ] Multi-language support
+- [ ] Dark mode
+- [ ] Export to Excel
+- [ ] Backup & restore
+- [ ] API documentation (Swagger)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Development Guidelines
+- Follow PSR-12 coding standards for PHP
+- Use meaningful variable and function names
+- Comment complex logic
+- Test before committing
+- Update documentation
+
+## 📝 License
+
+This project is proprietary software owned by **TND System**.
+
+**Copyright © 2024-2025 TND System. All rights reserved.**
+
+Unauthorized copying, modification, distribution, or use of this software, via any medium, is strictly prohibited without explicit permission from the copyright holders.
+
+## 📞 Contact & Support
+
+- **GitHub**: [elianafriliana9-eng/TnD-System](https://github.com/elianafriliana9-eng/TnD-System)
+- **Production**: [https://tndsystem.online](https://tndsystem.online)
+- **Email**: support@tndsystem.online
+
+---
+
+**Built with ❤️ by TND System Team**
+
+*Last Updated: December 9, 2025*

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
+import '../utils/responsive_helper.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'start_visit_screen.dart';
@@ -104,18 +105,28 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Responsive padding
+    final padding = ResponsiveHelper.getResponsivePadding(context);
+    final isTabletMode = ResponsiveHelper.isTablet(context);
+    final maxWidth = ResponsiveHelper.getCardMaxWidth(context);
+
     // Main content for Home tab
     Widget homeContent = Container(
       color: Colors.grey[50],
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                // Welcome Banner
-                Padding(
-                  padding: const EdgeInsets.all(16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: maxWidth ?? double.infinity,
+          ),
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    SizedBox(height: isTabletMode ? 24 : 16),
+                    // Welcome Banner
+                    Padding(
+                      padding: padding,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(
@@ -262,79 +273,166 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // Category Icons - Role-Based
-                SizedBox(
-                  height: 100,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    children: [
-                      // Visit - Only for non-trainers
-                      if (_canAccessVisit)
-                        _buildCategoryIcon(
-                          icon: Icons.checklist_rtl,
-                          label: 'Visit',
-                          color: Theme.of(context).primaryColor,
-                          onTap: () => _onNavBarTapped(1),
-                        ),
-
-                      // Training - For trainers and admins
-                      if (_canAccessTraining)
-                        _buildCategoryIcon(
-                          icon: Icons.school,
-                          label: 'Training',
-                          color: Color(0xFF4A90E2),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const TrainingMainScreen(),
+                // Category Icons - Role-Based (Responsive)
+                ResponsiveBuilder(
+                  builder: (context, constraints) {
+                    final isTablet = ResponsiveHelper.isTablet(context);
+                    
+                    // For tablet, use grid layout in landscape
+                    if (isTablet && ResponsiveHelper.isLandscape(context)) {
+                      return Padding(
+                        padding: padding,
+                        child: GridView.count(
+                          crossAxisCount: 5,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          children: [
+                            // Visit - Only for non-trainers
+                            if (_canAccessVisit)
+                              _buildCategoryCard(
+                                icon: Icons.checklist_rtl,
+                                label: 'Visit',
+                                color: Theme.of(context).primaryColor,
+                                onTap: () => _onNavBarTapped(1),
                               ),
-                            );
-                          },
-                        ),
 
-                      // History - Only for non-trainers
-                      if (_canAccessVisit)
-                        _buildCategoryIcon(
-                          icon: Icons.history,
-                          label: 'History',
-                          color: Colors.green,
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Coming soon')),
-                            );
-                          },
-                        ),
-
-                      // Reports - Only for non-trainers
-                      if (_canAccessVisit)
-                        _buildCategoryIcon(
-                          icon: Icons.assessment,
-                          label: 'Reports',
-                          color: Colors.purple,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ReportDashboardScreenV2(
-                                  currentUser: _currentUser!,
-                                ),
+                            // Training - For trainers and admins
+                            if (_canAccessTraining)
+                              _buildCategoryCard(
+                                icon: Icons.school,
+                                label: 'Training',
+                                color: Color(0xFF4A90E2),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TrainingMainScreen(),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
 
-                      // Profile - Available for all
-                      _buildCategoryIcon(
-                        icon: Icons.person,
-                        label: 'Profile',
-                        color: Colors.blueGrey,
-                        onTap: () => _onNavBarTapped(2),
+                            // History - Only for non-trainers
+                            if (_canAccessVisit)
+                              _buildCategoryCard(
+                                icon: Icons.history,
+                                label: 'History',
+                                color: Colors.green,
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Coming soon')),
+                                  );
+                                },
+                              ),
+
+                            // Reports - Only for non-trainers
+                            if (_canAccessVisit)
+                              _buildCategoryCard(
+                                icon: Icons.assessment,
+                                label: 'Reports',
+                                color: Colors.purple,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ReportDashboardScreenV2(
+                                        currentUser: _currentUser!,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+
+                            // Profile - Available for all
+                            _buildCategoryCard(
+                              icon: Icons.person,
+                              label: 'Profile',
+                              color: Colors.blueGrey,
+                              onTap: () => _onNavBarTapped(2),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    
+                    // Default horizontal scroll for mobile and tablet portrait
+                    return SizedBox(
+                      height: isTablet ? 120 : 100,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.symmetric(horizontal: isTablet ? 20 : 12),
+                        children: [
+                          // Visit - Only for non-trainers
+                          if (_canAccessVisit)
+                            _buildCategoryIcon(
+                              icon: Icons.checklist_rtl,
+                              label: 'Visit',
+                              color: Theme.of(context).primaryColor,
+                              onTap: () => _onNavBarTapped(1),
+                            ),
+
+                          // Training - For trainers and admins
+                          if (_canAccessTraining)
+                            _buildCategoryIcon(
+                              icon: Icons.school,
+                              label: 'Training',
+                              color: Color(0xFF4A90E2),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const TrainingMainScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+
+                          // History - Only for non-trainers
+                          if (_canAccessVisit)
+                            _buildCategoryIcon(
+                              icon: Icons.history,
+                              label: 'History',
+                              color: Colors.green,
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Coming soon')),
+                                );
+                              },
+                            ),
+
+                          // Reports - Only for non-trainers
+                          if (_canAccessVisit)
+                            _buildCategoryIcon(
+                              icon: Icons.assessment,
+                              label: 'Reports',
+                              color: Colors.purple,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ReportDashboardScreenV2(
+                                      currentUser: _currentUser!,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
+                          // Profile - Available for all
+                          _buildCategoryIcon(
+                            icon: Icons.person,
+                            label: 'Profile',
+                            color: Colors.blueGrey,
+                            onTap: () => _onNavBarTapped(2),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
 
                 // Features Section
@@ -454,6 +552,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
 
@@ -626,6 +726,63 @@ class _HomeScreenState extends State<HomeScreen> {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Card version for tablet grid layout
+  Widget _buildCategoryCard({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withValues(alpha: 0.2),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                icon,
+                size: 32,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

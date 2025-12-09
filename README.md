@@ -22,17 +22,20 @@ TND System adalah platform komprehensif untuk manajemen Training & Development y
 - **User Management** - Kelola user dengan role-based access control
 - **Outlet Management** - Manajemen data outlet/toko
 - **Checklist Management** - Setup kategori dan item checklist dengan drag & drop
+- **Visitor/Audit System** - Conduct outlet visits dengan checklist evaluation
 - **Training Reports** - View dan export laporan training
 - **Session Timeout** - Auto logout setelah 30 menit inactivity
 - **Modern UI/UX** - Clean design dengan gradient colors dan smooth animations
 
 ### Mobile App (Flutter)
 - **Daily Training** - Catat training harian per crew dengan rating system (BS/B/C/K)
+- **Outlet Visit/Audit** - Lakukan kunjungan outlet dengan checklist system
+- **Checklist Evaluation** - Evaluasi outlet berdasarkan kategori yang sudah ditentukan
 - **Digital Signature** - Tanda tangan digital untuk trainer dan crew leader
-- **Photo Upload** - Upload foto training dengan compression
+- **Photo Upload** - Upload foto training/visit dengan compression
 - **PDF Generation** - Generate training report dalam format PDF
 - **Offline Support** - Bekerja offline dan sync saat online
-- **Training History** - Riwayat training lengkap dengan filter
+- **Training & Visit History** - Riwayat training dan kunjungan lengkap dengan filter
 
 ### Backend API
 - **RESTful API** - Clean API architecture
@@ -193,17 +196,9 @@ chmod 755 backend-web/uploads/
 chmod 755 backend-web/uploads/training_photos/
 ```
 
-### 🔐 Login Default
+### 🔐 Authentication
 
-**Super Admin:**
-- Email: `admin@tnd-system.com`
-- Password: `password`
-
-**Test User:**
-- Email: `user@tnd-system.com`
-- Password: `password`
-
-> ⚠️ **Penting**: Ganti password default setelah login pertama!
+> 🔒 **Security Notice**: Login credentials are configured on production server for security purposes. Contact system administrator for access.
 
 ## 🔌 API Documentation
 
@@ -236,6 +231,16 @@ chmod 755 backend-web/uploads/training_photos/
 | POST | `/training/create.php` | Create training session |
 | POST | `/training/upload-photo.php` | Upload training photo |
 | GET | `/training/stats.php` | Get training statistics |
+
+### Visitor/Audit System
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/audits.php` | Get all audits/visits |
+| GET | `/audits.php?id={id}` | Get audit detail |
+| POST | `/audits.php` | Create new audit |
+| GET | `/audit-results.php?audit_id={id}` | Get audit results |
+| POST | `/audit-results.php` | Submit audit results |
+| GET | `/visit-stats.php` | Get visit statistics |
 
 ### Outlet Management
 | Method | Endpoint | Description |
@@ -287,6 +292,8 @@ chmod 755 backend-web/uploads/training_photos/
 | `divisions` | Training divisions | id, name, description |
 | `checklist_categories` | Checklist categories | id, division_id, name, description |
 | `checklist_points` | Checklist items | id, category_id, question |
+| `audits` | Outlet visits/audits | id, auditor_id, outlet_id, date, status |
+| `audit_results` | Audit evaluation results | id, audit_id, point_id, score, notes |
 | `training_sessions` | Training records | id, trainer_id, outlet_id, date, status |
 | `training_participants` | Training crew data | id, session_id, crew_name, rating |
 | `training_photos` | Training photos | id, session_id, photo_path |
@@ -337,6 +344,14 @@ chmod 755 backend-web/uploads/training_photos/
 - ➕ Drag & drop item management
 - 📝 Rich text descriptions
 - 🔢 Numbering system
+
+#### Visitor/Audit System
+- 🏪 Schedule outlet visits
+- ✅ Complete checklist evaluation
+- 📊 Score calculation & analytics
+- 📈 Performance tracking per outlet
+- 📄 Audit reports with photos
+- 📉 Trend analysis & comparisons
 
 #### Modern UI Features
 - 🎨 Gradient color scheme

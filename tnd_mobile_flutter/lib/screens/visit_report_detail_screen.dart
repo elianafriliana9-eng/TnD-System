@@ -706,7 +706,7 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                         ),
                       );
                     }),
-                ],
+                ];
               },
               footer: (pw.Context context) {
                 return pw.Column(

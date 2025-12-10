@@ -499,11 +499,11 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                       final nokRemarks = item['nok_remarks']; // NEW: Get NOK remarks
                       
                       return pw.Container(
-                        margin: const pw.EdgeInsets.only(bottom: 20),
-                        padding: const pw.EdgeInsets.all(12),
+                        margin: const pw.EdgeInsets.only(bottom: 12),
+                        padding: const pw.EdgeInsets.all(8),
                         decoration: pw.BoxDecoration(
-                          border: pw.Border.all(color: PdfColors.red, width: 1.5),
-                          borderRadius: pw.BorderRadius.circular(8),
+                          border: pw.Border.all(color: PdfColors.red, width: 1),
+                          borderRadius: pw.BorderRadius.circular(6),
                           color: PdfColors.red50,
                         ),
                         child: pw.Column(
@@ -513,24 +513,24 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                             pw.Row(
                               children: [
                                 pw.Container(
-                                  width: 30,
-                                  height: 30,
+                                  width: 24,
+                                  height: 24,
                                   decoration: pw.BoxDecoration(
                                     color: PdfColors.red,
-                                    borderRadius: pw.BorderRadius.circular(15),
+                                    borderRadius: pw.BorderRadius.circular(12),
                                   ),
                                   child: pw.Center(
                                     child: pw.Text(
                                       '${index + 1}',
                                       style: pw.TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 11,
                                         color: PdfColors.white,
                                         fontWeight: pw.FontWeight.bold,
                                       ),
                                     ),
                                   ),
                                 ),
-                                pw.SizedBox(width: 12),
+                                pw.SizedBox(width: 8),
                                 pw.Expanded(
                                   child: pw.Column(
                                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -538,22 +538,22 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                                       pw.Text(
                                         questionText,
                                         style: pw.TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 9,
                                           fontWeight: pw.FontWeight.bold,
                                           color: PdfColors.grey900,
                                         ),
                                       ),
                                       pw.SizedBox(height: 2),
                                       pw.Container(
-                                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                         decoration: pw.BoxDecoration(
                                           color: PdfColors.red,
-                                          borderRadius: pw.BorderRadius.circular(4),
+                                          borderRadius: pw.BorderRadius.circular(3),
                                         ),
                                         child: pw.Text(
                                           'NOK',
                                           style: pw.TextStyle(
-                                            fontSize: 8,
+                                            fontSize: 7,
                                             color: PdfColors.white,
                                             fontWeight: pw.FontWeight.bold,
                                           ),
@@ -565,83 +565,57 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                               ],
                             ),
                             
-                            pw.SizedBox(height: 10),
+                            pw.SizedBox(height: 6),
                             
                             // NOK Remarks (if any)
                             if (nokRemarks != null && nokRemarks.toString().isNotEmpty) ...[
                               pw.Container(
                                 width: double.infinity,
-                                padding: const pw.EdgeInsets.all(10),
+                                padding: const pw.EdgeInsets.all(6),
                                 decoration: pw.BoxDecoration(
                                   color: PdfColors.orange50,
-                                  borderRadius: pw.BorderRadius.circular(6),
-                                  border: pw.Border.all(color: PdfColors.orange200, width: 1),
+                                  borderRadius: pw.BorderRadius.circular(4),
+                                  border: pw.Border.all(color: PdfColors.orange200, width: 0.5),
                                 ),
-                                child: pw.Column(
+                                child: pw.Row(
                                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                                   children: [
-                                    pw.Row(
-                                      children: [
-                                        pw.Container(
-                                          width: 16,
-                                          height: 16,
-                                          decoration: pw.BoxDecoration(
-                                            color: PdfColors.orange,
-                                            borderRadius: pw.BorderRadius.circular(8),
-                                          ),
-                                          child: pw.Center(
-                                            child: pw.Text(
-                                              '!',
-                                              style: pw.TextStyle(
-                                                fontSize: 10,
-                                                color: PdfColors.white,
-                                                fontWeight: pw.FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        pw.SizedBox(width: 6),
-                                        pw.Text(
-                                          'Catatan NOK:',
-                                          style: pw.TextStyle(
-                                            fontSize: 9,
-                                            fontWeight: pw.FontWeight.bold,
-                                            color: PdfColors.orange900,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    pw.SizedBox(height: 6),
                                     pw.Text(
-                                      nokRemarks.toString(),
-                                      style: pw.TextStyle(
-                                        fontSize: 9,
-                                        color: PdfColors.grey900,
-                                        height: 1.4,
+                                      '📝 ',
+                                      style: pw.TextStyle(fontSize: 8),
+                                    ),
+                                    pw.Expanded(
+                                      child: pw.Text(
+                                        nokRemarks.toString(),
+                                        style: pw.TextStyle(
+                                          fontSize: 8,
+                                          color: PdfColors.grey900,
+                                          height: 1.2,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              pw.SizedBox(height: 10),
+                              pw.SizedBox(height: 6),
                             ] else ...[
                               pw.Container(
                                 width: double.infinity,
-                                padding: const pw.EdgeInsets.all(8),
+                                padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 6),
                                 decoration: pw.BoxDecoration(
                                   color: PdfColors.grey100,
-                                  borderRadius: pw.BorderRadius.circular(6),
+                                  borderRadius: pw.BorderRadius.circular(4),
                                 ),
                                 child: pw.Text(
-                                  'Catatan: Tidak ada catatan',
+                                  'Tidak ada catatan',
                                   style: pw.TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 7,
                                     color: PdfColors.grey600,
                                     fontStyle: pw.FontStyle.italic,
                                   ),
                                 ),
                               ),
-                              pw.SizedBox(height: 10),
+                              pw.SizedBox(height: 6),
                             ],
                             
                             // Multiple Photos Support
@@ -660,18 +634,18 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                               if (photos.isEmpty) {
                                 return [
                                   pw.Container(
-                                    width: 400,
-                                    height: 300,
+                                    width: double.infinity,
+                                    height: 180,
                                     decoration: pw.BoxDecoration(
                                       color: PdfColors.grey200,
                                       border: pw.Border.all(color: PdfColors.grey400),
-                                      borderRadius: pw.BorderRadius.circular(8),
+                                      borderRadius: pw.BorderRadius.circular(6),
                                     ),
                                     child: pw.Center(
                                       child: pw.Text(
                                         'Tidak ada foto',
                                         style: pw.TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 9,
                                           color: PdfColors.grey600,
                                         ),
                                       ),
@@ -680,7 +654,7 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                                 ];
                               }
                               
-                              // Display all photos
+                              // Display all photos in compact layout
                               return photos.asMap().entries.map((photoEntry) {
                                 final photoIndex = photoEntry.key;
                                 final photoUrl = photoEntry.value;
@@ -690,42 +664,40 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                                   children: [
                                     if (photos.length > 1) ...[
                                       pw.Text(
-                                        'Foto ${photoIndex + 1} dari ${photos.length}',
+                                        'Foto ${photoIndex + 1}/${photos.length}',
                                         style: pw.TextStyle(
-                                          fontSize: 9,
+                                          fontSize: 7,
                                           color: PdfColors.grey700,
                                           fontWeight: pw.FontWeight.bold,
                                         ),
                                       ),
-                                      pw.SizedBox(height: 6),
+                                      pw.SizedBox(height: 3),
                                     ],
-                                    pw.Center(
-                                      child: pw.Container(
-                                        width: 400,
-                                        height: 300,
-                                        decoration: pw.BoxDecoration(
-                                          border: pw.Border.all(color: PdfColors.grey400, width: 2),
-                                          borderRadius: pw.BorderRadius.circular(8),
-                                        ),
-                                        child: pw.ClipRRect(
-                                          horizontalRadius: 6,
-                                          verticalRadius: 6,
-                                          child: hasImage
-                                            ? pw.Image(loadedImages[photoUrl]!, fit: pw.BoxFit.cover)
-                                            : pw.Center(
-                                                child: pw.Text(
-                                                  'Foto tidak tersedia',
-                                                  style: pw.TextStyle(
-                                                    fontSize: 10,
-                                                    color: PdfColors.grey600,
-                                                  ),
+                                    pw.Container(
+                                      width: double.infinity,
+                                      height: 180,
+                                      decoration: pw.BoxDecoration(
+                                        border: pw.Border.all(color: PdfColors.grey400, width: 1),
+                                        borderRadius: pw.BorderRadius.circular(6),
+                                      ),
+                                      child: pw.ClipRRect(
+                                        horizontalRadius: 5,
+                                        verticalRadius: 5,
+                                        child: hasImage
+                                          ? pw.Image(loadedImages[photoUrl]!, fit: pw.BoxFit.cover)
+                                          : pw.Center(
+                                              child: pw.Text(
+                                                'Foto tidak tersedia',
+                                                style: pw.TextStyle(
+                                                  fontSize: 8,
+                                                  color: PdfColors.grey600,
                                                 ),
                                               ),
-                                        ),
+                                            ),
                                       ),
                                     ),
                                     if (photoIndex < photos.length - 1)
-                                      pw.SizedBox(height: 15),
+                                      pw.SizedBox(height: 8),
                                   ],
                                 );
                               }).toList();

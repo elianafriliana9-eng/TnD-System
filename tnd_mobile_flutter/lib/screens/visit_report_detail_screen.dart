@@ -393,34 +393,13 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                 
                 pw.SizedBox(height: 16),
                 
-                // Full Recommendations Section (if any)
-                if (_recommendations.isNotEmpty) ...[
-                  _buildPDFSectionHeader('REKOMENDASI PERBAIKAN (LENGKAP)'),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Berikut adalah semua temuan yang memerlukan perbaikan:',
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontStyle: pw.FontStyle.italic,
-                      color: PdfColors.grey700,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  ..._recommendations.map((finding) {
-                    return _buildPDFRecommendationItem(finding);
-                  }),
-                  pw.SizedBox(height: 24),
-                  pw.Divider(thickness: 1.5, color: PdfColors.grey400),
-                  pw.SizedBox(height: 16),
-                ],
-                
-                // Checklist Categories - HANYA OK Items
-                _buildPDFSectionHeader('HASIL CHECKLIST - ITEM OK'),
+                // ALL Checklist Results (OK & NOK together per category)
+                _buildPDFSectionHeader('HASIL CHECKLIST'),
                 pw.SizedBox(height: 8),
                 ..._groupedResponses.entries.map((entry) {
                   return pw.Column(
                     children: [
-                      _buildPDFChecklistCategoryOKOnly(entry.key, entry.value),
+                      _buildPDFChecklistCategoryAll(entry.key, entry.value),
                       pw.SizedBox(height: 12),
                     ],
                   );
@@ -436,9 +415,7 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      _recommendations.isNotEmpty 
-                        ? 'Halaman 2 - Rekomendasi & Item OK'
-                        : 'Halaman 2 - Item OK',
+                      'Halaman 2 - Hasil Checklist',
                       style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
                     ),
                     pw.Text(
@@ -483,10 +460,10 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     // Header
-                    _buildPDFSectionHeader('Daftar Temuan - $categoryName'),
+                    _buildPDFSectionHeader('LAMPIRAN FOTO - $categoryName'),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      'Berikut adalah item yang memerlukan perbaikan dengan foto detail',
+                      'Dokumentasi foto untuk item NOK (Not OK)',
                       style: pw.TextStyle(
                         fontSize: 10,
                         fontStyle: pw.FontStyle.italic,
@@ -502,6 +479,7 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                       final questionText = item['question'] ?? item['item_text'] ?? item['text'] ?? 'Unknown';
                       final photoUrl = item['photo_url'];
                       final notes = item['notes'];
+                      final nokRemarks = item['nok_remarks']; // NEW: Get NOK remarks
                       
                       return pw.Container(
                         margin: const pw.EdgeInsets.only(bottom: 20),
@@ -514,7 +492,7 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                         child: pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            // Header with number and badge
+                            // Header with number and item name
                             pw.Row(
                               children: [
                                 pw.Container(
@@ -537,53 +515,116 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                                 ),
                                 pw.SizedBox(width: 12),
                                 pw.Expanded(
-                                  child: pw.Text(
-                                    questionText,
-                                    style: pw.TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: pw.FontWeight.bold,
-                                      color: PdfColors.grey900,
-                                    ),
+                                  child: pw.Column(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                      pw.Text(
+                                        questionText,
+                                        style: pw.TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: pw.FontWeight.bold,
+                                          color: PdfColors.grey900,
+                                        ),
+                                      ),
+                                      pw.SizedBox(height: 2),
+                                      pw.Container(
+                                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: pw.BoxDecoration(
+                                          color: PdfColors.red,
+                                          borderRadius: pw.BorderRadius.circular(4),
+                                        ),
+                                        child: pw.Text(
+                                          'NOK',
+                                          style: pw.TextStyle(
+                                            fontSize: 8,
+                                            color: PdfColors.white,
+                                            fontWeight: pw.FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                             
-                            pw.SizedBox(height: 8),
+                            pw.SizedBox(height: 10),
                             
-                            // Notes if any
-                            if (notes != null && notes.isNotEmpty) ...[
+                            // NOK Remarks (if any)
+                            if (nokRemarks != null && nokRemarks.toString().isNotEmpty) ...[
                               pw.Container(
-                                padding: const pw.EdgeInsets.all(8),
+                                width: double.infinity,
+                                padding: const pw.EdgeInsets.all(10),
                                 decoration: pw.BoxDecoration(
-                                  color: PdfColors.grey100,
-                                  borderRadius: pw.BorderRadius.circular(4),
+                                  color: PdfColors.orange50,
+                                  borderRadius: pw.BorderRadius.circular(6),
+                                  border: pw.Border.all(color: PdfColors.orange200, width: 1),
                                 ),
-                                child: pw.Row(
+                                child: pw.Column(
                                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                                   children: [
+                                    pw.Row(
+                                      children: [
+                                        pw.Container(
+                                          width: 16,
+                                          height: 16,
+                                          decoration: pw.BoxDecoration(
+                                            color: PdfColors.orange,
+                                            borderRadius: pw.BorderRadius.circular(8),
+                                          ),
+                                          child: pw.Center(
+                                            child: pw.Text(
+                                              '!',
+                                              style: pw.TextStyle(
+                                                fontSize: 10,
+                                                color: PdfColors.white,
+                                                fontWeight: pw.FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        pw.SizedBox(width: 6),
+                                        pw.Text(
+                                          'Catatan NOK:',
+                                          style: pw.TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: pw.FontWeight.bold,
+                                            color: PdfColors.orange900,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    pw.SizedBox(height: 6),
                                     pw.Text(
-                                      'Catatan: ',
+                                      nokRemarks.toString(),
                                       style: pw.TextStyle(
                                         fontSize: 9,
-                                        fontWeight: pw.FontWeight.bold,
-                                        color: PdfColors.grey800,
-                                      ),
-                                    ),
-                                    pw.Expanded(
-                                      child: pw.Text(
-                                        notes,
-                                        style: pw.TextStyle(
-                                          fontSize: 9,
-                                          color: PdfColors.grey800,
-                                          fontStyle: pw.FontStyle.italic,
-                                        ),
+                                        color: PdfColors.grey900,
+                                        height: 1.4,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              pw.SizedBox(height: 8),
+                              pw.SizedBox(height: 10),
+                            ] else ...[
+                              pw.Container(
+                                width: double.infinity,
+                                padding: const pw.EdgeInsets.all(8),
+                                decoration: pw.BoxDecoration(
+                                  color: PdfColors.grey100,
+                                  borderRadius: pw.BorderRadius.circular(6),
+                                ),
+                                child: pw.Text(
+                                  'Catatan: Tidak ada catatan',
+                                  style: pw.TextStyle(
+                                    fontSize: 9,
+                                    color: PdfColors.grey600,
+                                    fontStyle: pw.FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                              pw.SizedBox(height: 10),
                             ],
                             
                             // Large Photo
@@ -908,6 +949,211 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
         );
       }
     }
+  }
+
+  // NEW METHOD: Build checklist category with ALL items (OK & NOK together)
+  pw.Widget _buildPDFChecklistCategoryAll(
+    String categoryName, 
+    List<Map<String, dynamic>> items,
+  ) {
+    int okCount = items.where((item) {
+      final resp = (item['response'] ?? item['response_value'] ?? '').toString().toLowerCase().replaceAll(' ', '_');
+      return resp == 'ok';
+    }).length;
+    
+    int nokCount = items.where((item) {
+      final resp = (item['response'] ?? item['response_value'] ?? '').toString().toLowerCase().replaceAll(' ', '_');
+      return resp == 'not_ok';
+    }).length;
+    
+    int naCount = items.where((item) {
+      final resp = (item['response'] ?? item['response_value'] ?? '').toString().toLowerCase().replaceAll(' ', '_');
+      return resp == 'na';
+    }).length;
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        // Category Header
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: pw.BoxDecoration(
+            gradient: const pw.LinearGradient(
+              colors: [PdfColors.blue800, PdfColors.blue600],
+            ),
+            borderRadius: pw.BorderRadius.circular(6),
+          ),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text(
+                categoryName.toUpperCase(),
+                style: pw.TextStyle(
+                  fontSize: 11,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                ),
+              ),
+              pw.Row(
+                children: [
+                  _buildPDFStatBadge('OK', okCount, PdfColors.green),
+                  pw.SizedBox(width: 4),
+                  _buildPDFStatBadge('NOK', nokCount, PdfColors.red),
+                  pw.SizedBox(width: 4),
+                  _buildPDFStatBadge('N/A', naCount, PdfColors.grey600),
+                ],
+              ),
+            ],
+          ),
+        ),
+        
+        pw.SizedBox(height: 6),
+        
+        // ALL items (OK, NOK, N/A)
+        ...items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final response = (item['response'] ?? item['response_value'] ?? '').toString().toLowerCase().replaceAll(' ', '_');
+          final questionText = item['question'] ?? item['item_text'] ?? item['text'] ?? 'Unknown';
+          final nokRemarks = item['nok_remarks']; // Get NOK remarks
+          
+          String statusLabel;
+          PdfColor bgColor;
+          PdfColor borderColor;
+          
+          switch (response) {
+            case 'ok':
+              statusLabel = 'OK';
+              bgColor = PdfColors.green50;
+              borderColor = PdfColors.green300;
+              break;
+            case 'not_ok':
+              statusLabel = 'NOK';
+              bgColor = PdfColors.red50;
+              borderColor = PdfColors.red300;
+              break;
+            default:
+              statusLabel = 'N/A';
+              bgColor = PdfColors.grey100;
+              borderColor = PdfColors.grey300;
+          }
+          
+          return pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 4),
+            padding: const pw.EdgeInsets.all(8),
+            decoration: pw.BoxDecoration(
+              color: bgColor,
+              border: pw.Border.all(color: borderColor, width: 1),
+              borderRadius: pw.BorderRadius.circular(4),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Number
+                    pw.Container(
+                      width: 24,
+                      child: pw.Text(
+                        '${index + 1}.',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          color: PdfColors.grey700,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    // Question text
+                    pw.Expanded(
+                      child: pw.Text(
+                        questionText,
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          color: PdfColors.grey900,
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(width: 8),
+                    // Status badge
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: pw.BoxDecoration(
+                        color: response == 'ok' 
+                          ? PdfColors.green 
+                          : response == 'not_ok'
+                            ? PdfColors.red
+                            : PdfColors.grey600,
+                        borderRadius: pw.BorderRadius.circular(10),
+                      ),
+                      child: pw.Text(
+                        statusLabel,
+                        style: pw.TextStyle(
+                          fontSize: 8,
+                          color: PdfColors.white,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // NOK Remarks (indent)
+                if (response == 'not_ok' && nokRemarks != null && nokRemarks.toString().isNotEmpty) ...[
+                  pw.SizedBox(height: 4),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 24),
+                    child: pw.Container(
+                      padding: const pw.EdgeInsets.all(6),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.orange50,
+                        borderRadius: pw.BorderRadius.circular(4),
+                        border: pw.Border.all(color: PdfColors.orange200, width: 0.5),
+                      ),
+                      child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            '└─ Catatan: ',
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.orange900,
+                            ),
+                          ),
+                          pw.Expanded(
+                            child: pw.Text(
+                              nokRemarks.toString(),
+                              style: pw.TextStyle(
+                                fontSize: 8,
+                                color: PdfColors.grey900,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else if (response == 'not_ok') ...[
+                  pw.SizedBox(height: 4),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 24),
+                    child: pw.Text(
+                      '└─ Catatan: Tidak ada catatan',
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        color: PdfColors.grey600,
+                        fontStyle: pw.FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }),
+      ],
+    );
   }
 
   // Helper method untuk section header yang profesional

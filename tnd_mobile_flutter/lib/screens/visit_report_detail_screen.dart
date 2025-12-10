@@ -141,14 +141,27 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
     setState(() => _isExporting = true);
     
     try {
-      // Pre-load all images for NOT OK items
+      // Pre-load all images for NOT OK items (handle multiple photos per item)
       final Map<String, pw.ImageProvider?> loadedImages = {};
       for (var entry in _groupedResponses.entries) {
         for (var item in entry.value) {
           final response = (item['response'] ?? item['response_value'] ?? '').toString().toLowerCase().replaceAll(' ', '_');
-          final photoUrl = item['photo_url'];
-          if (response == 'not_ok' && photoUrl != null && photoUrl.isNotEmpty) {
-            loadedImages[photoUrl] = await _loadNetworkImage(photoUrl);
+          if (response == 'not_ok') {
+            // Handle multiple photos
+            final photoUrls = item['photo_urls'];
+            if (photoUrls is List && photoUrls.isNotEmpty) {
+              for (var photoUrl in photoUrls) {
+                if (photoUrl != null && photoUrl.toString().isNotEmpty) {
+                  loadedImages[photoUrl.toString()] = await _loadNetworkImage(photoUrl.toString());
+                }
+              }
+            } else {
+              // Fallback to single photo_url for backward compatibility
+              final photoUrl = item['photo_url'];
+              if (photoUrl != null && photoUrl.isNotEmpty) {
+                loadedImages[photoUrl] = await _loadNetworkImage(photoUrl);
+              }
+            }
           }
         }
       }
@@ -627,52 +640,92 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
                               pw.SizedBox(height: 10),
                             ],
                             
-                            // Large Photo
-                            if (photoUrl != null && photoUrl.isNotEmpty && loadedImages.containsKey(photoUrl))
-                              pw.Center(
-                                child: pw.Container(
-                                  width: 400,
-                                  height: 300,
-                                  decoration: pw.BoxDecoration(
-                                    border: pw.Border.all(color: PdfColors.grey400, width: 2),
-                                    borderRadius: pw.BorderRadius.circular(8),
-                                  ),
-                                  child: pw.ClipRRect(
-                                    horizontalRadius: 6,
-                                    verticalRadius: 6,
-                                    child: loadedImages[photoUrl] != null
-                                      ? pw.Image(loadedImages[photoUrl]!, fit: pw.BoxFit.cover)
-                                      : pw.Center(
-                                          child: pw.Text(
-                                            'Foto tidak tersedia',
-                                            style: pw.TextStyle(
-                                              fontSize: 10,
-                                              color: PdfColors.grey600,
-                                            ),
-                                          ),
+                            // Multiple Photos Support
+                            ...() {
+                              final photoUrls = item['photo_urls'];
+                              List<String> photos = [];
+                              
+                              // Handle multiple photos
+                              if (photoUrls is List && photoUrls.isNotEmpty) {
+                                photos = photoUrls.map((e) => e.toString()).where((url) => url.isNotEmpty).toList();
+                              } else if (photoUrl != null && photoUrl.isNotEmpty) {
+                                // Fallback to single photo
+                                photos = [photoUrl];
+                              }
+                              
+                              if (photos.isEmpty) {
+                                return [
+                                  pw.Container(
+                                    width: 400,
+                                    height: 300,
+                                    decoration: pw.BoxDecoration(
+                                      color: PdfColors.grey200,
+                                      border: pw.Border.all(color: PdfColors.grey400),
+                                      borderRadius: pw.BorderRadius.circular(8),
+                                    ),
+                                    child: pw.Center(
+                                      child: pw.Text(
+                                        'Tidak ada foto',
+                                        style: pw.TextStyle(
+                                          fontSize: 12,
+                                          color: PdfColors.grey600,
                                         ),
-                                  ),
-                                ),
-                              )
-                            else
-                              pw.Container(
-                                width: 400,
-                                height: 300,
-                                decoration: pw.BoxDecoration(
-                                  color: PdfColors.grey200,
-                                  border: pw.Border.all(color: PdfColors.grey400),
-                                  borderRadius: pw.BorderRadius.circular(8),
-                                ),
-                                child: pw.Center(
-                                  child: pw.Text(
-                                    'Tidak ada foto',
-                                    style: pw.TextStyle(
-                                      fontSize: 12,
-                                      color: PdfColors.grey600,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
+                                ];
+                              }
+                              
+                              // Display all photos
+                              return photos.asMap().entries.map((photoEntry) {
+                                final photoIndex = photoEntry.key;
+                                final photoUrl = photoEntry.value;
+                                final hasImage = loadedImages.containsKey(photoUrl) && loadedImages[photoUrl] != null;
+                                
+                                return pw.Column(
+                                  children: [
+                                    if (photos.length > 1) ...[
+                                      pw.Text(
+                                        'Foto ${photoIndex + 1} dari ${photos.length}',
+                                        style: pw.TextStyle(
+                                          fontSize: 9,
+                                          color: PdfColors.grey700,
+                                          fontWeight: pw.FontWeight.bold,
+                                        ),
+                                      ),
+                                      pw.SizedBox(height: 6),
+                                    ],
+                                    pw.Center(
+                                      child: pw.Container(
+                                        width: 400,
+                                        height: 300,
+                                        decoration: pw.BoxDecoration(
+                                          border: pw.Border.all(color: PdfColors.grey400, width: 2),
+                                          borderRadius: pw.BorderRadius.circular(8),
+                                        ),
+                                        child: pw.ClipRRect(
+                                          horizontalRadius: 6,
+                                          verticalRadius: 6,
+                                          child: hasImage
+                                            ? pw.Image(loadedImages[photoUrl]!, fit: pw.BoxFit.cover)
+                                            : pw.Center(
+                                                child: pw.Text(
+                                                  'Foto tidak tersedia',
+                                                  style: pw.TextStyle(
+                                                    fontSize: 10,
+                                                    color: PdfColors.grey600,
+                                                  ),
+                                                ),
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                    if (photoIndex < photos.length - 1)
+                                      pw.SizedBox(height: 15),
+                                  ],
+                                );
+                              }).toList();
+                            }(),
                           ],
                         ),
                       );
@@ -1023,12 +1076,12 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
           
           switch (response) {
             case 'ok':
-              statusLabel = '✓';
+              statusLabel = 'V';
               bgColor = PdfColors.green50;
               borderColor = PdfColors.green300;
               break;
             case 'not_ok':
-              statusLabel = '✗';
+              statusLabel = 'X';
               bgColor = PdfColors.red50;
               borderColor = PdfColors.red300;
               break;

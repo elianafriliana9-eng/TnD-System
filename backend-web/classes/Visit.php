@@ -158,19 +158,33 @@ class Visit {
             return null;
         }
 
-        // Get checklist responses
-        $sql = "SELECT vcr.*, cp.question as item_text 
+        // Get checklist responses with grouped photos
+        $sql = "SELECT vcr.*, 
+                       cp.question as item_text, 
+                       vcr.nok_remarks,
+                       GROUP_CONCAT(p.file_path ORDER BY p.uploaded_at ASC SEPARATOR '|||') as photo_urls
                 FROM visit_checklist_responses vcr
                 LEFT JOIN checklist_points cp ON vcr.checklist_point_id = cp.id
+                LEFT JOIN photos p ON p.visit_id = vcr.visit_id AND p.item_id = vcr.checklist_point_id
                 WHERE vcr.visit_id = :visit_id
+                GROUP BY vcr.id, vcr.visit_id, vcr.checklist_point_id, vcr.response, vcr.notes, vcr.nok_remarks, cp.question
                 ORDER BY cp.sort_order ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':visit_id', $visitId);
         $stmt->execute();
-        $visit['responses'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $responses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Split photo_urls string into array
+        foreach ($responses as &$response) {
+            if (!empty($response['photo_urls'])) {
+                $response['photo_urls'] = explode('|||', $response['photo_urls']);
+            } else {
+                $response['photo_urls'] = [];
+            }
+        }
+        $visit['responses'] = $responses;
 
-        // Get photos - Production table: photos, Production column: item_id (not checklist_point_id)
-        // Return as 'checklist_item_id' for mobile compatibility
+        // Get photos separately for backward compatibility
         $sql = "SELECT p.id, p.visit_id, 
                        p.item_id as checklist_item_id, 
                        p.file_path as photo_path, 

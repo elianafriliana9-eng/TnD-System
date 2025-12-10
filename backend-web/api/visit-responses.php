@@ -34,21 +34,22 @@ try {
             // Get visit responses with category and item details
             // Production table: photos (not visit_photos)
             // Production columns: item_id (not checklist_item_id), file_path (not photo_path)
-            // IMPORTANT: Get ONE photo per response (use subquery to avoid duplicates)
+            // IMPORTANT: Get ALL photos per response using GROUP_CONCAT
             $sql = "SELECT 
                         vcr.id,
                         vcr.visit_id,
                         vcr.checklist_point_id as checklist_item_id,
                         vcr.response as response_value,
                         vcr.notes,
+                        vcr.nok_remarks,
                         vcr.created_at,
                         cp.question as item_text,
                         cc.name as category_name,
                         cc.id as category_id,
-                        (SELECT file_path FROM photos 
+                        (SELECT GROUP_CONCAT(file_path SEPARATOR '|||') 
+                         FROM photos 
                          WHERE visit_id = vcr.visit_id 
-                         AND item_id = vcr.checklist_point_id 
-                         LIMIT 1) as photo_url
+                         AND item_id = vcr.checklist_point_id) as photo_urls
                     FROM visit_checklist_responses vcr
                     INNER JOIN checklist_points cp ON vcr.checklist_point_id = cp.id
                     INNER JOIN checklist_categories cc ON cp.category_id = cc.id
@@ -61,15 +62,25 @@ try {
             $stmt->execute();
             $responses = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Convert photo_path to full URL
+            // Convert photo_urls to full URLs (handle multiple photos)
             $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
             $host = $_SERVER['HTTP_HOST'];
             // Production URL: https://tndsystem.online/backend-web/
             $baseUrl = $protocol . '://' . $host . '/backend-web/';
             
             foreach ($responses as &$response) {
-                if (!empty($response['photo_url'])) {
-                    $response['photo_url'] = $baseUrl . $response['photo_url'];
+                if (!empty($response['photo_urls'])) {
+                    // Split multiple photo paths and convert each to full URL
+                    $photoPaths = explode('|||', $response['photo_urls']);
+                    $photoUrls = array_map(function($path) use ($baseUrl) {
+                        return $baseUrl . $path;
+                    }, $photoPaths);
+                    $response['photo_urls'] = $photoUrls;
+                    // Keep first photo as photo_url for backward compatibility
+                    $response['photo_url'] = $photoUrls[0] ?? null;
+                } else {
+                    $response['photo_urls'] = [];
+                    $response['photo_url'] = null;
                 }
             }
             

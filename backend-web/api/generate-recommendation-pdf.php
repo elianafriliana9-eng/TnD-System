@@ -80,13 +80,14 @@ try {
         exit;
     }
     
-    // Get NOK findings with recommendations - Use separate queries to avoid duplicates
+    // Get ALL findings (OK and NOK) grouped by category
     // Production schema: NO 'recommendation' column, use 'notes' instead
     // Production: checklist_point_id (not checklist_item_id)
     $sql = "SELECT 
                 vcr.id as response_id,
                 vcr.response,
                 vcr.notes as response_notes,
+                vcr.nok_remarks,
                 vcr.checklist_point_id as checklist_item_id,
                 cp.question as checklist_question,
                 cp.id as checklist_id,
@@ -96,9 +97,6 @@ try {
             INNER JOIN checklist_points cp ON vcr.checklist_point_id = cp.id
             INNER JOIN checklist_categories cc ON cp.category_id = cc.id
             WHERE vcr.visit_id = ?
-            AND (LOWER(REPLACE(vcr.response, ' ', '_')) = 'not_ok' 
-                 OR LOWER(vcr.response) = 'not ok'
-                 OR vcr.response = 'NOT OK')
             ORDER BY cc.id, cp.id";
     
     $stmt = $db->prepare($sql);
@@ -157,12 +155,13 @@ try {
     }
     
     // Return data for PDF generation (flat structure expected by Flutter)
+    // Now includes ALL responses (OK, NOK, N/A) with NOK remarks
     header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
         'data' => [
             'visit' => $visit,
-            'findings_flat' => $findings,
+            'findings_flat' => $findings, // All checklist responses, not just NOK
             'total_findings' => count($findings)
         ]
     ]);

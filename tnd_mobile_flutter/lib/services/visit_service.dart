@@ -132,16 +132,24 @@ class VisitService {
     required int checklistItemId,
     required String response, // 'ok', 'not_ok', 'na'
     String? notes,
+    String? nokRemarks, // NOK remarks (optional)
   }) async {
     try {
+      final body = {
+        'visit_id': visitId,
+        'checklist_item_id': checklistItemId,
+        'response': response,
+        'notes': notes,
+      };
+      
+      // Only include nok_remarks if provided
+      if (nokRemarks != null && nokRemarks.isNotEmpty) {
+        body['nok_remarks'] = nokRemarks;
+      }
+      
       final apiResponse = await _apiService.post(
         AppConstants.endpointVisitChecklistResponse,
-        body: {
-          'visit_id': visitId,
-          'checklist_item_id': checklistItemId,
-          'response': response,
-          'notes': notes,
-        },
+        body: body,
       );
 
       return apiResponse;

@@ -38,6 +38,8 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
   List<CategoryItemModel> _items = [];
   Map<int, String> _responses = {}; // item_id -> response ('ok', 'not_ok', 'na')
   Map<int, String> _notes = {}; // item_id -> notes
+  Map<int, String> _nokRemarks = {}; // item_id -> NOK remarks (catatan kenapa NOK)
+  Map<int, TextEditingController> _nokRemarksControllers = {}; // Controllers for NOK remarks
   Map<int, List<File>> _photos = {}; // item_id -> list of LOCAL photos (not uploaded yet)
   Map<int, int> _serverPhotoCount = {}; // item_id -> count of photos already on server
   bool _isLoading = true;
@@ -48,6 +50,15 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
   void initState() {
     super.initState();
     _loadItems();
+  }
+
+  @override
+  void dispose() {
+    // Dispose all NOK remarks controllers
+    for (var controller in _nokRemarksControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadItems() async {
@@ -132,6 +143,15 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
             _notes[itemId] = resp['notes'].toString();
           }
           
+          // Load NOK remarks if exists
+          if (resp['nok_remarks'] != null && resp['nok_remarks'].toString().isNotEmpty) {
+            final remarks = resp['nok_remarks'].toString();
+            _nokRemarks[itemId] = remarks;
+            // Create controller with pre-filled value
+            _nokRemarksControllers[itemId] = TextEditingController(text: remarks);
+            print('📝 Loaded NOK remarks for item $itemId: "$remarks"');
+          }
+          
           // Track server photos count (photos already uploaded)
           if (resp['photo_url'] != null && resp['photo_url'].toString().isNotEmpty) {
             _serverPhotoCount[itemId] = (_serverPhotoCount[itemId] ?? 0) + 1;
@@ -206,6 +226,17 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
     
     setState(() {
       _responses[itemId] = response;
+      
+      // If NOT changing to NOT OK, clear NOK remarks
+      if (response != 'not_ok') {
+        _nokRemarks.remove(itemId);
+        _nokRemarksControllers[itemId]?.clear();
+      } else {
+        // Initialize controller if not exists for NOT OK
+        if (!_nokRemarksControllers.containsKey(itemId)) {
+          _nokRemarksControllers[itemId] = TextEditingController();
+        }
+      }
     });
 
     // Save to backend
@@ -216,6 +247,7 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
         checklistItemId: itemId,
         response: response,
         notes: _notes[itemId],
+        nokRemarks: _nokRemarks[itemId], // Send NOK remarks
       );
       
       if (result.success) {
@@ -538,6 +570,87 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
                 ),
               ],
             ),
+
+            // NOK Remarks TextField (shown when NOT OK selected)
+            if (response == 'not_ok') ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.orange.shade200,
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.edit_note,
+                          size: 18,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Catatan NOK (opsional)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange.shade900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _nokRemarksControllers[item.id],
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: Lantai kotor, wastafel rusak...',
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade500,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.orange.shade400, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.all(12),
+                      ),
+                      maxLines: 3,
+                      style: const TextStyle(fontSize: 14),
+                      onChanged: (value) {
+                        // Update NOK remarks in real-time
+                        setState(() {
+                          _nokRemarks[item.id] = value;
+                        });
+                        // Auto-save to backend
+                        _visitService.saveChecklistResponse(
+                          visitId: widget.visit.id,
+                          checklistItemId: item.id,
+                          response: response,
+                          notes: _notes[item.id],
+                          nokRemarks: value.isNotEmpty ? value : null,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             // Add Photo Button (shown for not_ok responses)
             if (response == 'not_ok') ...[

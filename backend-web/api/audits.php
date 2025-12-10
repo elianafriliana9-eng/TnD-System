@@ -121,7 +121,8 @@ try {
                             'audit_id' => $result,
                             'checklist_point_id' => intval($resultData['checklist_point_id']),
                             'score' => floatval($resultData['score']),
-                            'notes' => isset($resultData['notes']) ? $resultData['notes'] : ''
+                            'notes' => isset($resultData['notes']) ? $resultData['notes'] : '',
+                            'nok_remarks' => isset($resultData['nok_remarks']) ? $resultData['nok_remarks'] : null
                         ];
                         $auditResult->create($auditResultData);
                     }
@@ -181,7 +182,8 @@ try {
                         'audit_id' => $id,
                         'checklist_point_id' => intval($resultData['checklist_point_id']),
                         'score' => floatval($resultData['score']),
-                        'notes' => isset($resultData['notes']) ? $resultData['notes'] : ''
+                        'notes' => isset($resultData['notes']) ? $resultData['notes'] : '',
+                        'nok_remarks' => isset($resultData['nok_remarks']) ? $resultData['nok_remarks'] : null
                     ];
                     $auditResult->create($auditResultData);
                 }

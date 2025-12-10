@@ -114,7 +114,7 @@ class _TrainingMainScreenState extends State<TrainingMainScreen> {
                       Text(
                         'Kelola dan pantau training dengan mudah',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 14,
                         ),
                       ),
@@ -227,7 +227,7 @@ class _TrainingMainScreenState extends State<TrainingMainScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1),
                 spreadRadius: 0,
                 blurRadius: 10,
                 offset: const Offset(0, 2),
@@ -246,12 +246,12 @@ class _TrainingMainScreenState extends State<TrainingMainScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [color.withOpacity(0.8), color],
+                      colors: [color.withValues(alpha: 0.8), color],
                     ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: color.withOpacity(0.3),
+                        color: color.withValues(alpha: 0.3),
                         spreadRadius: 0,
                         blurRadius: 8,
                         offset: const Offset(0, 4),

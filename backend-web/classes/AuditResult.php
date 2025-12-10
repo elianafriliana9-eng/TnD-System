@@ -53,7 +53,16 @@ class AuditResult extends BaseModel {
         $stmt = $this->db->prepare($sql);
         $stmt->bindParam(':audit_id', $auditId);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $results = $stmt->fetchAll();
+        
+        // Ensure nok_remarks is included in result
+        foreach ($results as &$result) {
+            if (!isset($result['nok_remarks'])) {
+                $result['nok_remarks'] = null;
+            }
+        }
+        
+        return $results;
     }
     
     /**
@@ -82,6 +91,10 @@ class AuditResult extends BaseModel {
                     'category_name' => $result['category_name'],
                     'results' => []
                 ];
+            }
+            // Ensure nok_remarks is included
+            if (!isset($result['nok_remarks'])) {
+                $result['nok_remarks'] = null;
             }
             $grouped[$categoryId]['results'][] = $result;
         }

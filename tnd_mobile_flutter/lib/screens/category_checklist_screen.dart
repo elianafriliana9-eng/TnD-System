@@ -637,14 +637,16 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
                         setState(() {
                           _nokRemarks[item.id] = value;
                         });
-                        // Auto-save to backend
-                        _visitService.saveChecklistResponse(
-                          visitId: widget.visit.id,
-                          checklistItemId: item.id,
-                          response: response,
-                          notes: _notes[item.id],
-                          nokRemarks: value.isNotEmpty ? value : null,
-                        );
+                        // Auto-save to backend (only if response is not null)
+                        if (response != null) {
+                          _visitService.saveChecklistResponse(
+                            visitId: widget.visit.id,
+                            checklistItemId: item.id,
+                            response: response,
+                            notes: _notes[item.id],
+                            nokRemarks: value.isNotEmpty ? value : null,
+                          );
+                        }
                       },
                     ),
                   ],

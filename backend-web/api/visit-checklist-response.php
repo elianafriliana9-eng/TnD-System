@@ -66,6 +66,7 @@ try {
         'checklist_item_id' => $input['checklist_item_id'], // Will be mapped to checklist_point_id in model
         'response' => $dbResponse, // Use mapped database format (OK/NOT OK/N/A)
         'notes' => $input['notes'] ?? null,
+        'nok_remarks' => $input['nok_remarks'] ?? null, // NOK remarks (optional)
     ];
 
     error_log('Attempting to save checklist response: ' . json_encode($responseData));

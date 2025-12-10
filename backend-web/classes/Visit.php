@@ -246,18 +246,20 @@ class Visit {
             // Production table: visit_checklist_responses
             // Production column: checklist_point_id (not checklist_item_id)
             $sql = "INSERT INTO visit_checklist_responses 
-                    (visit_id, checklist_point_id, response, notes) 
+                    (visit_id, checklist_point_id, response, notes, nok_remarks) 
                     VALUES 
-                    (:visit_id, :checklist_point_id, :response, :notes)
+                    (:visit_id, :checklist_point_id, :response, :notes, :nok_remarks)
                     ON DUPLICATE KEY UPDATE 
                     response = VALUES(response), 
-                    notes = VALUES(notes)";
+                    notes = VALUES(notes), 
+                    nok_remarks = VALUES(nok_remarks)";
             
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':visit_id', $data['visit_id']);
             $stmt->bindParam(':checklist_point_id', $checklistPointId);
             $stmt->bindParam(':response', $data['response']);
             $stmt->bindParam(':notes', $data['notes']);
+            $stmt->bindParam(':nok_remarks', $data['nok_remarks']);
             
             if ($stmt->execute()) {
                 error_log('Checklist response saved successfully for visit_id: ' . $data['visit_id'] . ', checklist_point_id: ' . $checklistPointId);

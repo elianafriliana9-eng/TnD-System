@@ -1023,12 +1023,12 @@ class _VisitReportDetailScreenState extends State<VisitReportDetailScreen> {
           
           switch (response) {
             case 'ok':
-              statusLabel = 'OK';
+              statusLabel = '✓';
               bgColor = PdfColors.green50;
               borderColor = PdfColors.green300;
               break;
             case 'not_ok':
-              statusLabel = 'NOK';
+              statusLabel = '✗';
               bgColor = PdfColors.red50;
               borderColor = PdfColors.red300;
               break;

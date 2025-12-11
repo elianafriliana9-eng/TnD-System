@@ -261,8 +261,45 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
   }
 
   Future<void> _addPhoto(int itemId) async {
+    // Show dialog to choose between camera or gallery
+    final ImageSource? source = await showDialog<ImageSource>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Pilih Sumber Foto'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Colors.blue),
+              title: const Text('Ambil Foto'),
+              subtitle: const Text('Gunakan kamera'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.green),
+              title: const Text('Pilih dari Gallery'),
+              subtitle: const Text('Pilih foto yang sudah ada'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+        ],
+      ),
+    );
+
+    if (source == null) {
+      print('📷 User cancelled photo source selection');
+      return;
+    }
+
     final XFile? photo = await _imagePicker.pickImage(
-      source: ImageSource.camera,
+      source: source,
       maxWidth: 1280,    // Reduced from 1920
       maxHeight: 720,    // Reduced from 1080
       imageQuality: 70,  // Reduced from 85 for better compression
@@ -659,8 +696,8 @@ class _CategoryChecklistScreenState extends State<CategoryChecklistScreen> {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: _isSubmitting ? null : () => _addPhoto(item.id),
-                icon: const Icon(Icons.camera_alt),
-                label: Text('Add Photo ($totalPhotos)${serverPhotoCount > 0 ? ' · $serverPhotoCount uploaded' : ''}'),
+                icon: const Icon(Icons.add_photo_alternate),
+                label: Text('Tambah Foto ($totalPhotos)${serverPhotoCount > 0 ? ' · $serverPhotoCount uploaded' : ''}'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.orange,
                 ),

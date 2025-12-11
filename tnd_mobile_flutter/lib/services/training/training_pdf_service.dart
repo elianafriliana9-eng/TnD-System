@@ -6,9 +6,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import '../../models/training/training_models.dart';
 
-/// Training PDF Report Service - Single Page Version
-/// Generates single page professional training reports without photos
-/// Optimized for quick review and printing
+/// Training PDF Report Service - Multi Page Version
+/// Generates comprehensive training reports with all checklist items and photos
+/// Optimized for complete documentation (max 2 pages)
 class TrainingPDFService {
   static final TrainingPDFService _instance = TrainingPDFService._internal();
   factory TrainingPDFService() => _instance;
@@ -63,9 +63,309 @@ class TrainingPDFService {
     final trainerSignatureImage = pw.MemoryImage(trainerSignature);
     final leaderSignatureImage = pw.MemoryImage(leaderSignature);
 
-    // ===== SINGLE PAGE: Complete Training Report =====
-    // All information consolidated in one page: header, info, results,
-    // checklist table, comments, and signatures
+    // Convert session photos to PDF images
+    final List<pw.MemoryImage> photoImages = [];
+    for (var photoFile in sessionPhotos) {
+      try {
+        final bytes = await photoFile.readAsBytes();
+        photoImages.add(pw.MemoryImage(bytes));
+      } catch (e) {
+        print('⚠️  Error loading photo: $e');
+      }
+    }
+
+    // ===== MULTI PAGE: Complete Training Report with Photos =====
+    // Page 1: Header, Info, Summary, Checklist (compact)
+    // Page 2: Comments, Signatures, and Documentation Photos
+    
+    // PAGE 1: Main Report with Checklist
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(25),
+        build: (pw.Context context) {
+          return [
+            // Compact Header
+            pw.Container(
+              padding: const pw.EdgeInsets.all(10),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(width: 1.5, color: PdfColors.blue900),
+                color: PdfColors.blue50,
+              ),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'LAPORAN TRAINING',
+                    style: pw.TextStyle(
+                      fontSize: 18,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.blue900,
+                    ),
+                  ),
+                  pw.Text(
+                    DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      color: PdfColors.grey600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            pw.SizedBox(height: 12),
+
+            // Compact Info & Summary in one row
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Left column: Training Info
+                pw.Expanded(
+                  flex: 3,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'INFO TRAINING',
+                        style: pw.TextStyle(
+                          fontSize: 11,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.blue900,
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      _buildCompactInfoTable([
+                        ['Outlet', session.outletName],
+                        [
+                          'Tanggal',
+                          _formatDate(session.sessionDate.toString()),
+                        ],
+                        ['Trainer', session.trainerName ?? '-'],
+                        ['Nama Crew', session.crewName ?? '-'],
+                      ]),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 10),
+                // Right column: Results Summary
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Container(
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.grey100,
+                      border: pw.Border.all(
+                        width: 1,
+                        color: PdfColors.grey300,
+                      ),
+                    ),
+                    child: pw.Column(
+                      children: [
+                        pw.Text(
+                          'HASIL',
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.blue900,
+                          ),
+                        ),
+                        pw.SizedBox(height: 6),
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildCompactStatBox(
+                              'BS',
+                              _countBSResponses(responses),
+                            ),
+                            _buildCompactStatBox(
+                              'B',
+                              _countBResponses(responses),
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildCompactStatBox(
+                              'C',
+                              _countCResponses(responses),
+                            ),
+                            _buildCompactStatBox(
+                              'K',
+                              _countKResponses(responses),
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 6),
+                        pw.Text(
+                          'Rata-rata: ${_calculateAverage(responses).toStringAsFixed(1)}',
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.blue900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            pw.SizedBox(height: 12),
+
+            // Checklist Results (Detailed with Points)
+            pw.Text(
+              'HASIL CHECKLIST DETAIL',
+              style: pw.TextStyle(
+                fontSize: 11,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue900,
+              ),
+            ),
+            pw.SizedBox(height: 4),
+
+            // Display each category with its points
+            ...categories.map((category) {
+              final points =
+                  (category['points'] as List?)
+                      ?.cast<Map<String, dynamic>>() ??
+                  [];
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  // Category header
+                  pw.Container(
+                    width: double.infinity,
+                    padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
+                    ),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.blue100,
+                      border: pw.Border.all(
+                        width: 1,
+                        color: PdfColors.blue300,
+                      ),
+                    ),
+                    child: pw.Text(
+                      category['category_name'] ?? 'Unknown Category',
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blue900,
+                      ),
+                    ),
+                  ),
+                  // Points list
+                  ...points.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final point = entry.value;
+                    final pointId = point['id'];
+                    final pointText =
+                        point['point_text'] ?? point['point_name'] ?? 'Item';
+                    final rating = responses[pointId]?.toUpperCase() ?? '-';
+
+                    // Determine color based on rating
+                    PdfColor ratingColor;
+                    switch (rating) {
+                      case 'BS':
+                        ratingColor = PdfColors.green600;
+                        break;
+                      case 'B':
+                        ratingColor = PdfColors.green;
+                        break;
+                      case 'C':
+                        ratingColor = PdfColors.orange;
+                        break;
+                      case 'K':
+                        ratingColor = PdfColors.red;
+                        break;
+                      default:
+                        ratingColor = PdfColors.grey;
+                    }
+
+                    return pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border(
+                          left: pw.BorderSide(
+                            width: 1,
+                            color: PdfColors.grey300,
+                          ),
+                          right: pw.BorderSide(
+                            width: 1,
+                            color: PdfColors.grey300,
+                          ),
+                          bottom: pw.BorderSide(
+                            width: 0.5,
+                            color: PdfColors.grey200,
+                          ),
+                        ),
+                        color: index.isEven
+                            ? PdfColors.white
+                            : PdfColors.grey50,
+                      ),
+                      child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Container(
+                            width: 20,
+                            child: pw.Text(
+                              '${index + 1}.',
+                              style: pw.TextStyle(
+                                fontSize: 7,
+                                color: PdfColors.grey700,
+                              ),
+                            ),
+                          ),
+                          pw.Expanded(
+                            child: pw.Text(
+                              pointText,
+                              style: const pw.TextStyle(fontSize: 7),
+                            ),
+                          ),
+                          pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: pw.BoxDecoration(
+                              color: ratingColor.shade(0.9),
+                              borderRadius: pw.BorderRadius.circular(3),
+                              border: pw.Border.all(
+                                color: ratingColor,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: pw.Text(
+                              rating,
+                              style: pw.TextStyle(
+                                fontSize: 7,
+                                fontWeight: pw.FontWeight.bold,
+                                color: ratingColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  pw.SizedBox(height: 6),
+                ],
+              );
+            }).toList(),
+          ];
+        },
+      ),
+    );
+
+    // PAGE 2: Comments, Signatures, and Documentation Photos
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
@@ -350,9 +650,53 @@ class TrainingPDFService {
                 );
               }).toList(),
 
-              pw.SizedBox(height: 8),
+            ],
+          );
+        },
+      ),
+    );
 
-              // Comments Section (No signatures here)
+    // PAGE 2: Comments, Signatures, and Documentation Photos
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(25),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Page Header
+              pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(width: 1.5, color: PdfColors.blue900),
+                  color: PdfColors.blue50,
+                ),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'EVALUASI & DOKUMENTASI',
+                      style: pw.TextStyle(
+                        fontSize: 14,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blue900,
+                      ),
+                    ),
+                    pw.Text(
+                      'Halaman 2',
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        color: PdfColors.grey600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 12),
+
+              // Comments Section
               pw.Text(
                 'Evaluasi/Saran',
                 style: pw.TextStyle(
@@ -361,75 +705,75 @@ class TrainingPDFService {
                   color: PdfColors.blue900,
                 ),
               ),
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 6),
 
               // Trainer Comment
               pw.Container(
                 width: double.infinity,
-                padding: const pw.EdgeInsets.all(6),
+                padding: const pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(
                   color: PdfColors.grey100,
                   border: pw.Border.all(width: 1, color: PdfColors.grey300),
+                  borderRadius: pw.BorderRadius.circular(4),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Trainer:',
+                      'Komentar Trainer:',
                       style: pw.TextStyle(
-                        fontSize: 8,
+                        fontSize: 9,
                         fontWeight: pw.FontWeight.bold,
                       ),
                     ),
-                    pw.SizedBox(height: 2),
+                    pw.SizedBox(height: 4),
                     pw.Text(
                       trainerComment.isNotEmpty
                           ? trainerComment
                           : 'Tidak ada komentar',
-                      style: const pw.TextStyle(fontSize: 7),
-                      maxLines: 2,
-                      overflow: pw.TextOverflow.clip,
+                      style: const pw.TextStyle(fontSize: 8),
+                      maxLines: 3,
                     ),
                   ],
                 ),
               ),
 
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 6),
 
-              // Crew Comment
+              // Crew Leader Comment
               pw.Container(
                 width: double.infinity,
-                padding: const pw.EdgeInsets.all(6),
+                padding: const pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(
                   color: PdfColors.grey100,
                   border: pw.Border.all(width: 1, color: PdfColors.grey300),
+                  borderRadius: pw.BorderRadius.circular(4),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Crew Leader:',
+                      'Komentar Crew Leader:',
                       style: pw.TextStyle(
-                        fontSize: 8,
+                        fontSize: 9,
                         fontWeight: pw.FontWeight.bold,
                       ),
                     ),
-                    pw.SizedBox(height: 2),
+                    pw.SizedBox(height: 4),
                     pw.Text(
                       leaderComment.isNotEmpty
                           ? leaderComment
                           : 'Tidak ada komentar',
-                      style: const pw.TextStyle(fontSize: 7),
-                      maxLines: 2,
-                      overflow: pw.TextOverflow.clip,
+                      style: const pw.TextStyle(fontSize: 8),
+                      maxLines: 3,
                     ),
                   ],
                 ),
               ),
 
-              pw.SizedBox(height: 10),
+              pw.SizedBox(height: 12),
 
-              // Signatures Section (Horizontal at bottom)
+              // Signatures Section
               pw.Text(
                 'TANDA TANGAN DIGITAL',
                 style: pw.TextStyle(
@@ -438,7 +782,7 @@ class TrainingPDFService {
                   color: PdfColors.blue900,
                 ),
               ),
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 6),
 
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
@@ -449,16 +793,17 @@ class TrainingPDFService {
                       pw.Text(
                         'Trainer',
                         style: pw.TextStyle(
-                          fontSize: 8,
+                          fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
                       pw.SizedBox(height: 4),
                       pw.Container(
-                        width: 80,
-                        height: 40,
+                        width: 100,
+                        height: 50,
                         decoration: pw.BoxDecoration(
                           border: pw.Border.all(color: PdfColors.grey400),
+                          borderRadius: pw.BorderRadius.circular(4),
                         ),
                         child: pw.Image(
                           trainerSignatureImage,
@@ -469,14 +814,14 @@ class TrainingPDFService {
                       pw.Text(
                         session.trainerName ?? '-',
                         style: pw.TextStyle(
-                          fontSize: 7,
+                          fontSize: 8,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
                       pw.Text(
                         DateFormat('dd/MM/yyyy').format(DateTime.now()),
                         style: pw.TextStyle(
-                          fontSize: 6,
+                          fontSize: 7,
                           color: PdfColors.grey600,
                         ),
                       ),
@@ -488,16 +833,17 @@ class TrainingPDFService {
                       pw.Text(
                         'Crew Leader',
                         style: pw.TextStyle(
-                          fontSize: 8,
+                          fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
                       pw.SizedBox(height: 4),
                       pw.Container(
-                        width: 80,
-                        height: 40,
+                        width: 100,
+                        height: 50,
                         decoration: pw.BoxDecoration(
                           border: pw.Border.all(color: PdfColors.grey400),
+                          borderRadius: pw.BorderRadius.circular(4),
                         ),
                         child: pw.Image(
                           leaderSignatureImage,
@@ -508,14 +854,14 @@ class TrainingPDFService {
                       pw.Text(
                         _getCrewLeaderName(crewLeader, session),
                         style: pw.TextStyle(
-                          fontSize: 7,
+                          fontSize: 8,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
                       pw.Text(
                         DateFormat('dd/MM/yyyy').format(DateTime.now()),
                         style: pw.TextStyle(
-                          fontSize: 6,
+                          fontSize: 7,
                           color: PdfColors.grey600,
                         ),
                       ),
@@ -524,15 +870,87 @@ class TrainingPDFService {
                 ],
               ),
 
+              pw.SizedBox(height: 12),
+
+              // Documentation Photos Section
+              if (photoImages.isNotEmpty) ...[
+                pw.Text(
+                  'DOKUMENTASI TRAINING',
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.blue900,
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+                
+                // Display photos in grid (2 columns)
+                pw.Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: photoImages.take(4).map((photoImage) {
+                    return pw.Container(
+                      width: (PdfPageFormat.a4.width - 50 - 8) / 2,
+                      height: 130,
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border.all(
+                          color: PdfColors.grey400,
+                          width: 1,
+                        ),
+                        borderRadius: pw.BorderRadius.circular(4),
+                      ),
+                      child: pw.ClipRRect(
+                        horizontalRadius: 4,
+                        verticalRadius: 4,
+                        child: pw.Image(
+                          photoImage,
+                          fit: pw.BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Text(
+                  'Total ${photoImages.length} foto dokumentasi',
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontStyle: pw.FontStyle.italic,
+                    color: PdfColors.grey600,
+                  ),
+                ),
+              ] else ...[
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.all(12),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey100,
+                    border: pw.Border.all(color: PdfColors.grey300),
+                    borderRadius: pw.BorderRadius.circular(4),
+                  ),
+                  child: pw.Center(
+                    child: pw.Text(
+                      'Tidak ada foto dokumentasi',
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        color: PdfColors.grey600,
+                        fontStyle: pw.FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
               pw.Spacer(),
 
+              // Footer
               pw.Divider(thickness: 0.5, color: PdfColors.grey400),
               pw.SizedBox(height: 4),
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Laporan Harian Training - TnD System',
+                    'Laporan Training - TnD System',
                     style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
                   ),
                   pw.Text(

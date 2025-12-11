@@ -15,30 +15,23 @@ class TrainingDailyScreen extends StatefulWidget {
 
 class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
   final TrainingService _trainingService = TrainingService();
-  TrainingScheduleModel? _selectedSchedule;
+  List<TrainingScheduleModel> _allSchedules = [];
   bool _isLoading = true;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    // Use the passed schedule if available, otherwise load schedules for today
-    if (widget.schedule != null) {
-      _selectedSchedule = widget.schedule;
-      _isLoading = false;
-    } else {
-      _loadTodaySchedules();
-    }
+    _loadAllSchedules();
   }
 
-  Future<void> _loadTodaySchedules() async {
+  Future<void> _loadAllSchedules() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final today = DateTime.now();
       final response = await _trainingService.getSchedules();
       print(
         'DEBUG DAILY: Got ${response.data?.length ?? 0} schedules from API',
@@ -54,42 +47,32 @@ class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
           print('  - crewName: ${first.crewName}');
           print('  - status: ${first.status}');
         }
-        // Filter schedules for today that are scheduled or ongoing (NOT completed)
-        final todaySchedules = response.data!.where((schedule) {
-          // Check if this is a schedule for today
-          bool isToday =
-              schedule.scheduledDate.year == today.year &&
-              schedule.scheduledDate.month == today.month &&
-              schedule.scheduledDate.day == today.day;
-
-          // Also check for expired schedules (past schedules that are still marked as 'scheduled')
-          bool isPastAndScheduled =
-              schedule.scheduledDate.isBefore(today) &&
-              schedule.status == 'scheduled';
-
-          // Only show if status is 'scheduled' or 'ongoing', NOT 'completed'
-          bool isNotCompleted = schedule.status != 'completed';
-
-          return ((isToday && isNotCompleted) || isPastAndScheduled);
+        
+        // Show ALL schedules that are NOT completed
+        // This includes scheduled, ongoing, and expired schedules
+        final availableSchedules = response.data!.where((schedule) {
+          // Only hide completed schedules
+          return schedule.status != 'completed';
         }).toList();
 
+        // Sort schedules: ongoing first, then scheduled by date, then expired
+        availableSchedules.sort((a, b) {
+          // Priority 1: Ongoing sessions come first
+          if (a.status == 'ongoing' && b.status != 'ongoing') return -1;
+          if (b.status == 'ongoing' && a.status != 'ongoing') return 1;
+          
+          // Priority 2: Sort by scheduled date (newest first for scheduled)
+          return b.scheduledDate.compareTo(a.scheduledDate);
+        });
+
         setState(() {
-          // If there's only one schedule for today, use it as the selected one
-          if (todaySchedules.length == 1) {
-            _selectedSchedule = todaySchedules.first;
-          } else if (todaySchedules.isNotEmpty) {
-            // If multiple schedules for today, just set the first one or let user choose
-            _selectedSchedule = todaySchedules.first;
-          } else {
-            // If no schedules for today, set as null
-            _selectedSchedule = null;
-          }
+          _allSchedules = availableSchedules;
           _isLoading = false;
         });
       } else {
         setState(() {
           _errorMessage =
-              response.message ?? 'Gagal memuat jadwal training hari ini';
+              response.message ?? 'Gagal memuat jadwal training';
           _isLoading = false;
         });
       }
@@ -147,7 +130,7 @@ class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.refresh),
-                  onPressed: _isLoading ? null : _loadTodaySchedules,
+                  onPressed: _isLoading ? null : _loadAllSchedules,
                 ),
               ],
             ),
@@ -160,7 +143,7 @@ class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _loadTodaySchedules,
+                      onRefresh: _loadAllSchedules,
                       child: _errorMessage != null
                           ? SizedBox(
                               height: 400,
@@ -189,8 +172,8 @@ class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
                                 ),
                               ),
                             )
-                          : _selectedSchedule != null
-                          ? _buildScheduleCard(_selectedSchedule!)
+                          : _allSchedules.isNotEmpty
+                          ? _buildSchedulesList()
                           : SizedBox(
                               height: 400,
                               child: Center(
@@ -208,7 +191,7 @@ class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
-                                        'Tidak ada jadwal training hari ini',
+                                        'Tidak ada jadwal training tersedia',
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.white.withValues(
@@ -218,7 +201,7 @@ class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Jadwal training belum dibuat atau sudah selesai',
+                                        'Semua jadwal sudah selesai atau belum dibuat',
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.white.withValues(
@@ -236,6 +219,44 @@ class _TrainingDailyScreenState extends State<TrainingDailyScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSchedulesList() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with count
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Row(
+              children: [
+                Icon(Icons.list_alt, color: Colors.white, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  '${_allSchedules.length} Jadwal Training Tersedia',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // List of schedules
+          ...List.generate(
+            _allSchedules.length,
+            (index) => Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: _buildScheduleCard(_allSchedules[index]),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -509,14 +509,135 @@ async function showReports() {
     contentArea.innerHTML = `
         <div class="fade-in">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-chart-bar me-2"></i>Visit Reports</h2>
+                <h2><i class="fas fa-chart-bar me-2"></i>Analytics & Reports</h2>
                 <div class="btn-group">
+                    <button id="refresh-stats-btn" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
                     <button id="export-xlsx-btn" class="btn btn-success">
-                        <i class="fas fa-file-excel me-2"></i>Export to XLSX
+                        <i class="fas fa-file-excel me-2"></i>Export Excel
                     </button>
                     <button id="export-pdf-btn" class="btn btn-danger">
-                        <i class="fas fa-file-pdf me-2"></i>Export to PDF
+                        <i class="fas fa-file-pdf me-2"></i>Export PDF
                     </button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-3 mb-4" id="stats-cards">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                                        <i class="fas fa-clipboard-check"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="text-muted small">Total Visits</div>
+                                    <h3 class="mb-0" id="stat-total-visits">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="text-muted small">OK Rate</div>
+                                    <h3 class="mb-0 text-success" id="stat-ok-rate">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                                        <i class="fas fa-times-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="text-muted small">NOK Items</div>
+                                    <h3 class="mb-0 text-danger" id="stat-nok-count">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="text-muted small">Outlets Visited</div>
+                                    <h3 class="mb-0" id="stat-outlets">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0">
+                            <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Response Distribution</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="responseChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0">
+                            <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Top 10 Outlets Performance</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="outletChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0">
+                            <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Visit Trends (Last 30 Days)</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendChart" height="100"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -572,14 +693,16 @@ async function showReports() {
             </div>
             
             <div class="card mb-4">
-                <div class="card-header">
-                    <h5><i class="fas fa-list me-2"></i>All Visits</h5>
-                    <small class="text-muted" id="filter-info">Showing all visits</small>
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Visits</h5>
+                        <small class="text-muted" id="filter-info">Showing all visits</small>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped" id="audits-table">
-                            <thead>
+                        <table class="table table-hover" id="audits-table">
+                            <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
                                     <th>Outlet</th>
@@ -588,10 +711,11 @@ async function showReports() {
                                     <th>Visit Date</th>
                                     <th>Status</th>
                                     <th>Score</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                                <tr><td colspan="8" class="text-center">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -599,14 +723,14 @@ async function showReports() {
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Visit Findings (NOK)</h5>
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Visit Findings (NOK)</h5>
                     <small class="text-muted">Checklist items yang diberi tanda silang (✗)</small>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped" id="findings-table">
-                            <thead>
+                        <table class="table table-hover" id="findings-table">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Outlet</th>
                                     <th>Category</th>
@@ -625,6 +749,9 @@ async function showReports() {
             </div>
         </div>
     `;
+
+    // Initialize chart variables
+    let responseChart, outletChart, trendChart;
 
     // Load outlets for filter dropdown
     try {
@@ -665,6 +792,236 @@ async function showReports() {
     thirtyDaysAgo.setDate(today.getDate() - 30);
     document.getElementById('filter-date-to').valueAsDate = today;
     document.getElementById('filter-date-from').valueAsDate = thirtyDaysAgo;
+
+    // Function to load and display statistics
+    async function loadStatistics() {
+        try {
+            const dateFrom = document.getElementById('filter-date-from').value;
+            const dateTo = document.getElementById('filter-date-to').value;
+            
+            let url = '/visit-reports.php?';
+            const params = [];
+            if (dateFrom) params.push(`date_from=${dateFrom}`);
+            if (dateTo) params.push(`date_to=${dateTo}`);
+            url += params.join('&');
+
+            const response = await API.get(url);
+            
+            if (response.success && response.data.data) {
+                const visits = response.data.data;
+                
+                // Calculate statistics
+                const totalVisits = visits.length;
+                const uniqueOutlets = new Set(visits.map(v => v.outlet_id)).size;
+                
+                let totalOK = 0, totalNOK = 0, totalNA = 0;
+                visits.forEach(visit => {
+                    totalOK += parseInt(visit.ok_count || 0);
+                    totalNOK += parseInt(visit.not_ok_count || 0);
+                    totalNA += parseInt(visit.na_count || 0);
+                });
+                
+                const totalResponses = totalOK + totalNOK + totalNA;
+                const okRate = totalResponses > 0 ? ((totalOK / totalResponses) * 100).toFixed(1) : 0;
+                
+                // Update stat cards
+                document.getElementById('stat-total-visits').textContent = totalVisits;
+                document.getElementById('stat-ok-rate').textContent = okRate + '%';
+                document.getElementById('stat-nok-count').textContent = totalNOK;
+                document.getElementById('stat-outlets').textContent = uniqueOutlets;
+                
+                // Create charts
+                createResponseChart(totalOK, totalNOK, totalNA);
+                createOutletChart(visits);
+                createTrendChart(visits, dateFrom, dateTo);
+            }
+        } catch (error) {
+            console.error('Error loading statistics:', error);
+        }
+    }
+
+    // Function to create response distribution pie chart
+    function createResponseChart(ok, nok, na) {
+        const ctx = document.getElementById('responseChart');
+        if (responseChart) responseChart.destroy();
+        
+        responseChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['OK', 'NOK', 'N/A'],
+                datasets: [{
+                    data: [ok, nok, na],
+                    backgroundColor: ['#28a745', '#dc3545', '#6c757d'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = ok + nok + na;
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Function to create outlet performance bar chart
+    function createOutletChart(visits) {
+        const ctx = document.getElementById('outletChart');
+        if (outletChart) outletChart.destroy();
+        
+        // Group by outlet and calculate average score
+        const outletStats = {};
+        visits.forEach(visit => {
+            if (!outletStats[visit.outlet_name]) {
+                outletStats[visit.outlet_name] = {
+                    totalScore: 0,
+                    count: 0
+                };
+            }
+            outletStats[visit.outlet_name].totalScore += parseFloat(visit.score || 0);
+            outletStats[visit.outlet_name].count++;
+        });
+        
+        // Calculate averages and sort
+        const outletData = Object.keys(outletStats).map(name => ({
+            name: name,
+            avgScore: outletStats[name].totalScore / outletStats[name].count,
+            visits: outletStats[name].count
+        })).sort((a, b) => b.avgScore - a.avgScore).slice(0, 10);
+        
+        const labels = outletData.map(d => d.name);
+        const scores = outletData.map(d => d.avgScore);
+        
+        outletChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: scores,
+                    backgroundColor: scores.map(score => 
+                        score >= 80 ? '#28a745' : 
+                        score >= 60 ? '#ffc107' : '#dc3545'
+                    ),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Score: ' + context.parsed.x.toFixed(1) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Function to create visit trend line chart
+    function createTrendChart(visits, dateFrom, dateTo) {
+        const ctx = document.getElementById('trendChart');
+        if (trendChart) trendChart.destroy();
+        
+        // Group visits by date
+        const dateStats = {};
+        visits.forEach(visit => {
+            const date = visit.visit_date.split(' ')[0]; // Get date only
+            if (!dateStats[date]) {
+                dateStats[date] = { count: 0, totalScore: 0 };
+            }
+            dateStats[date].count++;
+            dateStats[date].totalScore += parseFloat(visit.score || 0);
+        });
+        
+        // Sort dates and prepare data
+        const sortedDates = Object.keys(dateStats).sort();
+        const visitCounts = sortedDates.map(date => dateStats[date].count);
+        const avgScores = sortedDates.map(date => dateStats[date].totalScore / dateStats[date].count);
+        
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sortedDates.map(d => {
+                    const date = new Date(d);
+                    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                }),
+                datasets: [{
+                    label: 'Visit Count',
+                    data: visitCounts,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Avg Score (%)',
+                    data: avgScores,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Visit Count'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Score (%)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
 
     // Function to load visits with filters
     async function loadVisitsWithFilter() {
@@ -728,9 +1085,30 @@ async function showReports() {
             const response = await loadVisitsWithFilter();
             displayVisits(response);
             await loadFindingsWithFilter();
+            await loadStatistics();
         } catch (error) {
             console.error('Error applying filter:', error);
             Swal.fire('Error', 'Failed to apply filter', 'error');
+        }
+    });
+
+    // Refresh stats button
+    document.getElementById('refresh-stats-btn').addEventListener('click', async () => {
+        try {
+            const btn = document.getElementById('refresh-stats-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+            
+            await loadStatistics();
+            const response = await loadVisitsWithFilter();
+            displayVisits(response);
+            await loadFindingsWithFilter();
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Refresh';
+        } catch (error) {
+            console.error('Error refreshing:', error);
+            Swal.fire('Error', 'Failed to refresh data', 'error');
         }
     });
 
@@ -808,7 +1186,7 @@ async function showReports() {
                 }[visit.status] || 'bg-secondary';
                 
                 const row = `
-                    <tr style="cursor: pointer;" class="visit-row" data-visit-id="${visit.id}" data-outlet="${visit.outlet_name}" data-date="${visitDate}">
+                    <tr>
                         <td>${visit.id}</td>
                         <td>${visit.outlet_name || 'N/A'}</td>
                         <td>${visit.auditor_name || 'N/A'}</td>
@@ -816,20 +1194,41 @@ async function showReports() {
                         <td>${visitDate}</td>
                         <td><span class="badge ${statusBadge}">${visit.status}</span></td>
                         <td>
-                            ${visit.score}%
-                            <br>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 20px; width: 60px;">
+                                    <div class="progress-bar ${visit.score >= 80 ? 'bg-success' : visit.score >= 60 ? 'bg-warning' : 'bg-danger'}" 
+                                         role="progressbar" 
+                                         style="width: ${visit.score}%"
+                                         aria-valuenow="${visit.score}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <span class="fw-bold">${visit.score}%</span>
+                            </div>
                             <small class="text-muted">
-                                ✓${visit.ok_count} ✗${visit.not_ok_count} N/A${visit.na_count}
+                                <i class="fas fa-check text-success"></i>${visit.ok_count} 
+                                <i class="fas fa-times text-danger"></i>${visit.not_ok_count} 
+                                <i class="fas fa-minus text-secondary"></i>${visit.na_count}
                             </small>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary view-detail-btn" 
+                                    data-visit-id="${visit.id}"
+                                    data-outlet="${visit.outlet_name}"
+                                    data-date="${visitDate}">
+                                <i class="fas fa-eye"></i> Detail
+                            </button>
                         </td>
                     </tr>
                 `;
                 tableBody.innerHTML += row;
             });
             
-            // Add click event listeners to visit rows
-            document.querySelectorAll('.visit-row').forEach(row => {
-                row.addEventListener('click', function() {
+            // Add click event listeners to view detail buttons
+            document.querySelectorAll('.view-detail-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     const visitId = this.dataset.visitId;
                     const outlet = this.dataset.outlet;
                     const date = this.dataset.date;
@@ -837,18 +1236,19 @@ async function showReports() {
                 });
             });
         } else {
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No visits found.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No visits found.</td></tr>';
         }
     }
 
-    // Initial load of visits
+    // Initial load of visits and statistics
     try {
+        await loadStatistics();
         const response = await loadVisitsWithFilter();
         displayVisits(response);
     } catch (error) {
         console.error('Error loading visits:', error);
         const tableBody = document.querySelector('#audits-table tbody');
-        tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Failed to load visits: ${error.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Failed to load visits: ${error.message}</td></tr>`;
     }
 
     // Function to display findings
@@ -885,7 +1285,7 @@ async function showReports() {
                 const hasPhoto = finding.photo_count > 0;
 
                 const row = `
-                    <tr class="${isRepeat ? 'table-danger' : ''} ${hasPhoto ? 'finding-row-clickable' : ''}" 
+                    <tr class="${isRepeat ? 'table-danger' : ''} ${hasPhoto ? 'finding-row-clickable table-hover' : ''}" 
                         style="${hasPhoto ? 'cursor: pointer;' : ''}"
                         ${hasPhoto ? `data-outlet="${finding.outlet_name}" data-category="${finding.category_name}" data-question="${finding.checklist_point_question}"` : ''}>
                         <td>${finding.outlet_name}</td>
@@ -893,7 +1293,11 @@ async function showReports() {
                         <td>${finding.checklist_point_question}</td>
                         <td>${lastDate}</td>
                         <td>
-                            ${hasPhoto ? `<i class="fas fa-camera text-success"></i> ${finding.photo_count} <small class="text-muted">(click to view)</small>` : '<span class="text-muted">-</span>'}
+                            ${hasPhoto ? `
+                                <button class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-images"></i> ${finding.photo_count} Photo${finding.photo_count > 1 ? 's' : ''}
+                                </button>
+                            ` : '<span class="text-muted">No photos</span>'}
                         </td>
                         <td>
                             ${finding.count}
@@ -1419,6 +1823,58 @@ async function exportToExcelWithPhotos() {
     // Get findings data
     const findingsResponse = await API.get(findingsUrl);
     const findings = findingsResponse.data.data;
+    
+    // Calculate statistics
+    const totalVisits = visits.length;
+    const uniqueOutlets = new Set(visits.map(v => v.outlet_id)).size;
+    let totalOK = 0, totalNOK = 0, totalNA = 0;
+    visits.forEach(v => {
+        totalOK += parseInt(v.ok_count || 0);
+        totalNOK += parseInt(v.not_ok_count || 0);
+        totalNA += parseInt(v.na_count || 0);
+    });
+    const totalResponses = totalOK + totalNOK + totalNA;
+    const okRate = totalResponses > 0 ? ((totalOK / totalResponses) * 100).toFixed(1) : 0;
+    
+    // Sheet 0: Summary Statistics
+    const summarySheet = workbook.addWorksheet('Summary', {
+        views: [{ state: 'frozen' }]
+    });
+    
+    summarySheet.mergeCells('A1:D1');
+    summarySheet.getCell('A1').value = 'TND System - Visit Reports Summary';
+    summarySheet.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FF1E3A8A' } };
+    summarySheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+    summarySheet.getRow(1).height = 30;
+    
+    summarySheet.mergeCells('A2:D2');
+    summarySheet.getCell('A2').value = `Period: ${dateFrom || 'All'} to ${dateTo || 'All'}`;
+    summarySheet.getCell('A2').font = { italic: true };
+    summarySheet.getCell('A2').alignment = { horizontal: 'center' };
+    
+    const stats = [
+        ['Metric', 'Value'],
+        ['Total Visits', totalVisits],
+        ['Outlets Visited', uniqueOutlets],
+        ['OK Rate', okRate + '%'],
+        ['Total OK', totalOK],
+        ['Total NOK', totalNOK],
+        ['Total N/A', totalNA],
+        ['Total Responses', totalResponses]
+    ];
+    
+    summarySheet.addRows(stats);
+    summarySheet.getRow(4).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    summarySheet.getRow(4).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF667EEA' }
+    };
+    
+    summarySheet.columns = [
+        { key: 'metric', width: 25 },
+        { key: 'value', width: 20 }
+    ];
     
     // Sheet 1: All Visits
     const visitsSheet = workbook.addWorksheet('All Visits', {
